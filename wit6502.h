@@ -4,10 +4,13 @@ class Bus;
 class wit6502
 {
 private:
-    /* data */
+    Bus* wit6502:: bus = nullptr; //initial bus state
 public:
     wit6502(/* args */);
     ~wit6502();
+    void ConnectBus(Bus* n);
+    void write(uint16_t a, uint8_t d);
+    uint8_t read(uint16_t addr);
 
 
     //Human Readable Flags
