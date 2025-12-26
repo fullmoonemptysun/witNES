@@ -1,16 +1,30 @@
-
+#include <string>
+#include <vector>
+using namespace std;
 
 class Bus;
 class wit6502
 {
 private:
         Bus* bus = nullptr; //initial bus state
-        uint8_t getFlag();
         void write(uint16_t a, uint8_t d);
         uint8_t read(uint16_t addr);
+        uint8_t cycles;
+        struct INSTRUCTION
+        {
+            string name;
+            uint8_t(wit6502::*operate)(void) = nullptr;
+            uint8_t(wit6502::*addrmode)(void) = nullptr;
+            uint8_t cycles = 0;
+
+        };
+
+        vector<INSTRUCTION> lookup;
+
+
 public:
-        wit6502(/* args */);
-        ~wit6502();
+         wit6502(/* args */);
+         ~wit6502();
     
 
 
@@ -47,7 +61,7 @@ public:
     uint8_t IZX(); uint8_t IZY();
 
     /*OP CODES*/
-        uint8_t ADC();	uint8_t AND();	uint8_t ASL();	uint8_t BCC();
+    uint8_t ADC();	uint8_t AND();	uint8_t ASL();	uint8_t BCC();
 	uint8_t BCS();	uint8_t BEQ();	uint8_t BIT();	uint8_t BMI();
 	uint8_t BNE();	uint8_t BPL();	uint8_t BRK();	uint8_t BVC();
 	uint8_t BVS();	uint8_t CLC();	uint8_t CLD();	uint8_t CLI();
@@ -78,7 +92,7 @@ public:
     uint8_t fetched = 0x00; //returned data
 
     uint16_t addr_main = 0x0000; //stores the address to read from
-    uint16_t addr_rel = 0x0000; //when jumping, what is the relative address from the current address
+    uint16_t addr_rel = 0x00; //when jumping, what is the relative address from the current address
     uint8_t opcode = 0x00; //current opcode 
     uint8_t cycle = 0x00; //number of cycles remaining for current instruction.
 
@@ -87,7 +101,8 @@ public:
 
 
 private:
-    void setFlag(FLAGSTAT, bool v);
+    void setFlag(FLAGSTAT f, bool v);
+    uint8_t getFlag(FLAGSTAT f);
 
 
 };
