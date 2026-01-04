@@ -1,9 +1,10 @@
 #include <string>
 #include <vector>
+#include <cstdint>
 using namespace std;
 
 class Bus;
-class wit6502
+class cpu
 {
 private:
         Bus* bus = nullptr; //initial bus state
@@ -13,8 +14,8 @@ private:
         struct INSTRUCTION
         {
             string name;
-            uint8_t(wit6502::*operate)(void) = nullptr;
-            uint8_t(wit6502::*addrmode)(void) = nullptr;
+            uint8_t(cpu::*operate)(void) = nullptr;
+            uint8_t(cpu::*addrmode)(void) = nullptr;
             uint8_t cycles = 0;
 
         };
@@ -23,8 +24,8 @@ private:
 
 
 public:
-         wit6502(/* args */);
-         ~wit6502();
+         cpu(/* args */);
+         ~cpu();
     
 
 

@@ -1,7 +1,8 @@
 #include <cstdlib>
 #include <cstdint>
-#include "Bus.h"
 #include <iostream>
+#include "Bus.h"
+
 
 
 using namespace std; 
