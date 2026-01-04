@@ -57,6 +57,27 @@ cpu::cpu(){
 }
 
 
+//----------FLAGS (STATUS REGISTER) SETTER and GETTER
+void cpu::setFlag(FLAGSTAT flag, bool b){
+	//set the flag
+	if(b){
+		status |= flag; //set the flag
+	}
+
+	//clear the flag
+	else{
+		status &= ~flag;
+
+	}
+}
+
+uint8_t cpu::getFlag(FLAGSTAT flag){
+	//return 1 if set, 0 if not set
+	return (status & flag) ? 1:0;
+}
+//---------------------------------------------------
+
+
 
 
 

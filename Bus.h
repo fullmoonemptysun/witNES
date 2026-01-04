@@ -1,4 +1,4 @@
-#include "wit6502.h"
+#include "cpu.h"
 #include <array>
 #include <cstdlib>
 #include <cstdint>
@@ -14,7 +14,7 @@ public:
     ~Bus();
 
 public://devices on bus
-    wit6502 cpu;
+    cpu cpu;
     array<uint8_t, 64 * 128> ram; //Fake RAM
 
 
