@@ -8,20 +8,20 @@
 using namespace std; 
 
 //----------------IMPLEMENT ALL CLASS FUNCTIONS-------------------
-void wit6502::ConnectBus(Bus* n){bus = n;}
+void cpu::ConnectBus(Bus* n){bus = n;}
 
 //Write to the bus
-void wit6502::write(uint16_t a, uint8_t d){
+void cpu::write(uint16_t a, uint8_t d){
         bus -> write(a, d); //Call bus's write method
 };
 
 //read from the bus
-uint8_t wit6502::read(uint16_t addr){
+uint8_t cpu::read(uint16_t addr){
 //This is the same as (bus*).read(...)
         return bus -> read(addr, false);
 }
 
-void wit6502::clock(){
+void cpu::clock(){
     if(cycles == 0){
         opcode = read(pc);
         pc++;
@@ -32,9 +32,9 @@ void wit6502::clock(){
     }
 }
 
-using a = wit6502;
+using a = cpu;
 
-wit6502::wit6502(){
+cpu::cpu(){
     lookup = 
 	{
 		{ "BRK", a::BRK, &a::IMM, 7 },{ "ORA", &a::ORA, &a::IZX, 6 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 8 },{ "???", &a::NOP, &a::IMP, 3 },{ "ORA", &a::ORA, &a::ZP0, 3 },{ "ASL", &a::ASL, &a::ZP0, 5 },{ "???", &a::XXX, &a::IMP, 5 },{ "PHP", &a::PHP, &a::IMP, 3 },{ "ORA", &a::ORA, &a::IMM, 2 },{ "ASL", &a::ASL, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::NOP, &a::IMP, 4 },{ "ORA", &a::ORA, &a::ABS, 4 },{ "ASL", &a::ASL, &a::ABS, 6 },{ "???", &a::XXX, &a::IMP, 6 },
@@ -55,6 +55,9 @@ wit6502::wit6502(){
 		{ "BEQ", &a::BEQ, &a::REL, 2 },{ "SBC", &a::SBC, &a::IZY, 5 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 8 },{ "???", &a::NOP, &a::IMP, 4 },{ "SBC", &a::SBC, &a::ZPX, 4 },{ "INC", &a::INC, &a::ZPX, 6 },{ "???", &a::XXX, &a::IMP, 6 },{ "SED", &a::SED, &a::IMP, 2 },{ "SBC", &a::SBC, &a::ABY, 4 },{ "NOP", &a::NOP, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 7 },{ "???", &a::NOP, &a::IMP, 4 },{ "SBC", &a::SBC, &a::ABX, 4 },{ "INC", &a::INC, &a::ABX, 7 },{ "???", &a::XXX, &a::IMP, 7 },
 	};
 }
+
+
+
 
 
 

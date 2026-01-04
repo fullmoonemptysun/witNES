@@ -11,11 +11,13 @@ private:
         void write(uint16_t a, uint8_t d);
         uint8_t read(uint16_t addr);
         uint8_t cycles;
+
+        //Instruction structure
         struct INSTRUCTION
         {
             string name;
-            uint8_t(cpu::*operate)(void) = nullptr;
-            uint8_t(cpu::*addrmode)(void) = nullptr;
+            uint8_t(cpu::*operate)(void) = nullptr; //the base instruction
+            uint8_t(cpu::*addrmode)(void) = nullptr; //addressing mode
             uint8_t cycles = 0;
 
         };
@@ -61,7 +63,7 @@ public:
     uint8_t ABY(); uint8_t IND();
     uint8_t IZX(); uint8_t IZY();
 
-    /*OP CODES*/
+    /*OP CODES | Basic instructions*/
     uint8_t ADC();	uint8_t AND();	uint8_t ASL();	uint8_t BCC();
 	uint8_t BCS();	uint8_t BEQ();	uint8_t BIT();	uint8_t BMI();
 	uint8_t BNE();	uint8_t BPL();	uint8_t BRK();	uint8_t BVC();
