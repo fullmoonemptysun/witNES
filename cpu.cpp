@@ -119,7 +119,7 @@ uint8_t cpu::ZPY(){
 	return operand;
 }
 
-//ABS 
+//ABS $0000
 uint8_t cpu::ABS(){
 	//Get the low byte of the address
 	uint8_t lowByte = read(pc);
@@ -204,6 +204,8 @@ uint8_t cpu::IZY(){
 	fetched = read(addr);
 	return fetched;
 }
+
+
 
 
 
