@@ -79,6 +79,144 @@ uint8_t cpu::getFlag(FLAGSTAT flag){
 
 
 
+//-----------------addrMode Function-----------------
+
+//IMM
+uint8_t cpu::IMM(){
+	//the next byte after opcode is the 8 bit operand.
+	uint8_t operand = read(pc);
+	pc++;
+	fetched = operand;
+	return operand;
+}
+
+//ZP0
+uint8_t cpu::ZP0(){
+	//Read from the 0 page
+	uint8_t addr = read(pc);
+	pc++;
+	fetched = read(addr);
+	return fetched;
+}
+
+//ZPX ($00, X)
+uint8_t cpu::ZPX(){
+	//Effective address calculation
+	uint8_t addr = ((read(pc) + x) % 256);
+	pc++;
+	uint8_t operand = read(addr);
+	fetched = operand;
+	return operand;
+}
+
+//ZPY ($00, Y)
+uint8_t cpu::ZPY(){
+	//Effective address calculation
+	uint8_t addr = ((read(pc) + y) % 256);
+	pc++;
+	uint8_t operand = read(addr);
+	fetched = operand;
+	return operand;
+}
+
+//ABS 
+uint8_t cpu::ABS(){
+	//Get the low byte of the address
+	uint8_t lowByte = read(pc);
+	pc++;
+	//Get the hight byte
+	uint8_t highByte = read(pc);
+	pc++;
+
+	//effective address
+	uint16_t addr = (lowByte + (highByte * 256));
+
+	uint8_t operand = read(addr);
+	fetched = operand;
+	return operand;
+}
+
+//ABX ($0000, X)
+uint8_t cpu::ABX(){
+	//low byte
+	uint8_t lowByte = read(pc);
+	pc++;
+	//high byte
+	uint8_t highByte = read(pc);
+	pc++;
+
+	//effective address
+	uint16_t addr = (((lowByte + (highByte * 256)) + x) & 0xFFFF);
+
+	fetched = read(addr);
+	return fetched;
+}
+
+
+//ABY ($0000, Y)
+uint8_t cpu::ABX(){
+	//low byte
+	uint8_t lowByte = read(pc);
+	pc++;
+	//high byte
+	uint8_t highByte = read(pc);
+	pc++;
+
+	//effective address
+	uint16_t addr = (((lowByte + (highByte * 256)) + y) & 0xFFFF);
+
+	fetched = read(addr);
+	return fetched;
+}
+
+//
+
+//INDEXED INDIRECT ($00, X)
+//Peek(Peek((arg + X)%256) + Peek((arg+X + 1) % 256) * 256)
+uint8_t cpu::IZX(){
+	uint8_t arg = read(pc);
+	pc++;
+
+	uint8_t lowByte = read((arg + x) % 256);
+	uint8_t highByte = read(((arg + x + 1) % 256)) * 256;
+
+	//Effective address
+	uint16_t addr = lowByte + highByte;
+
+	fetched = read(addr);
+
+	return fetched;
+
+
+}
+
+//INDIRECT INDEXED ($00), Y
+//PEEK(PEEK(arg) + PEEK((arg+1) % 256) * 256 + Y)
+uint8_t cpu::IZY(){
+	uint8_t arg = read(pc);
+	pc++;
+	uint8_t lowByte = read(arg);
+	uint8_t highByte = read((arg + 1) % 256) * 256;
+
+	//effective address
+	uint16_t addr = lowByte + highByte + y;
+
+	fetched = read(addr);
+	return fetched;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
