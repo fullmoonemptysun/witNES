@@ -154,7 +154,7 @@ uint8_t cpu::ABX(){
 
 
 //ABY ($0000, Y)
-uint8_t cpu::ABX(){
+uint8_t cpu::ABY(){
 	//low byte
 	uint8_t lowByte = read(pc);
 	pc++;
@@ -204,6 +204,12 @@ uint8_t cpu::IZY(){
 	fetched = read(addr);
 	return fetched;
 }
+
+
+
+
+
+//------------------------Basic Instructions-----------------------------------
 
 
 

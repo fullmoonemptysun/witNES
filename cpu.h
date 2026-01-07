@@ -90,9 +90,9 @@ public:
     void nmi();
 
 
-    uint8_t fetch(); //an instruction might need some data this will get that data
+    //uint8_t fetch(); //an instruction might need some data this will get that data
 
-    uint8_t fetched = 0x00; //returned data
+    uint8_t fetched = 0x00; // I will use this as the main intermediate data buffer
 
     uint16_t addr_main = 0x0000; //stores the address to read from
     uint16_t addr_rel = 0x00; //when jumping, what is the relative address from the current address
