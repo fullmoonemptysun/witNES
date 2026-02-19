@@ -45,9 +45,9 @@ public:
     };
 
     //Accumulator, Registers(x,y), stack pointer, program counter and status register
-    uint8_t a = 0x00;
-    uint8_t x = 0x00;
-    uint8_t y = 0x00;
+    uint8_t acc = 0x00;
+    uint8_t xreg = 0x00;
+    uint8_t yreg = 0x00;
     uint8_t stkp = 0x00;
     uint16_t pc = 0x0000;
     uint8_t status = 0x00;

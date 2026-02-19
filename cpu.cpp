@@ -30,6 +30,11 @@ void cpu::clock(){
         (this->*lookup[opcode].addrmode)();
         (this->*lookup[opcode].operate)();
     }
+
+
+	else{
+		cycles -= 1;  //cycles reduces with every tick
+	}
 }
 
 using a = cpu;
@@ -79,22 +84,22 @@ uint8_t cpu::getFlag(FLAGSTAT flag){
 
 
 
-//-----------------addrMode Function-----------------
+//-----------------addrMode Functions-----------------
 
 //IMM
 uint8_t cpu::IMM(){
 	//the next byte after opcode is the 8 bit operand.
-	uint8_t operand = read(pc);
-	pc++;
-	fetched = operand;
-	return operand;
+	fetched = read(pc);
+	// pc++; THIS SHOULD BE DONE IN THE MAIN INSTRUCTION AFTER EVERYTHING IS COMPLETE UNLESS IT IS FOR INTERMEDIATE DATA. 
+	
+	return fetched;
 }
 
 //ZP0
 uint8_t cpu::ZP0(){
 	//Read from the 0 page
 	uint8_t addr = read(pc);
-	pc++;
+	// pc++; xxxxx
 	fetched = read(addr);
 	return fetched;
 }
@@ -175,7 +180,7 @@ uint8_t cpu::ABY(){
 //Peek(Peek((arg + X)%256) + Peek((arg+X + 1) % 256) * 256)
 uint8_t cpu::IZX(){
 	uint8_t arg = read(pc);
-	pc++;
+	// pc++;
 
 	uint8_t lowByte = read((arg + x) % 256);
 	uint8_t highByte = read(((arg + x + 1) % 256)) * 256;
@@ -194,7 +199,7 @@ uint8_t cpu::IZX(){
 //PEEK(PEEK(arg) + PEEK((arg+1) % 256) * 256 + Y)
 uint8_t cpu::IZY(){
 	uint8_t arg = read(pc);
-	pc++;
+	// pc++;
 	uint8_t lowByte = read(arg);
 	uint8_t highByte = read((arg + 1) % 256) * 256;
 
@@ -211,8 +216,23 @@ uint8_t cpu::IZY(){
 
 //------------------------Basic Instructions-----------------------------------
 
+//Add with carry
+uint8_t cpu::ADC(){
+	int result = acc + fetched + getFlag(C);
 
 
+
+	setFlag(C, (result > 0xff));
+	setFlag(Z, (result == 0));
+	//If the result's sign is different from both A's and memory's, signed overflow (or underflow) occurred.
+	setFlag(V, ((result ^ acc) & (result ^ fetched) & 0x80));
+	setFlag(N, result & 0x80);
+	acc = result && 0xff; // accumulator can only have the lower 8 bits
+
+
+	return acc;
+
+}
 
 
 

@@ -6,9 +6,18 @@ using namespace std;
 
 Bus::Bus(){
     //clear the ram
+
+
+
     for(auto &data : ram){
         data = 0x00;
     }
+
+    ram[0] = 0x69;
+    ram[1] = 234;
+    
+
+
 
     cpu.ConnectBus(this);
 
