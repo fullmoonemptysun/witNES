@@ -42,7 +42,7 @@ using a = cpu;
 cpu::cpu(){
     lookup = 
 	{
-		{ "BRK", a::BRK, &a::IMM, 7 },{ "ORA", &a::ORA, &a::IZX, 6 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 8 },{ "???", &a::NOP, &a::IMP, 3 },{ "ORA", &a::ORA, &a::ZP0, 3 },{ "ASL", &a::ASL, &a::ZP0, 5 },{ "???", &a::XXX, &a::IMP, 5 },{ "PHP", &a::PHP, &a::IMP, 3 },{ "ORA", &a::ORA, &a::IMM, 2 },{ "ASL", &a::ASL, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::NOP, &a::IMP, 4 },{ "ORA", &a::ORA, &a::ABS, 4 },{ "ASL", &a::ASL, &a::ABS, 6 },{ "???", &a::XXX, &a::IMP, 6 },
+		{ "BRK", &a::BRK, &a::IMM, 7 },{ "ORA", &a::ORA, &a::IZX, 6 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 8 },{ "???", &a::NOP, &a::IMP, 3 },{ "ORA", &a::ORA, &a::ZP0, 3 },{ "ASL", &a::ASL, &a::ZP0, 5 },{ "???", &a::XXX, &a::IMP, 5 },{ "PHP", &a::PHP, &a::IMP, 3 },{ "ORA", &a::ORA, &a::IMM, 2 },{ "ASL", &a::ASL, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::NOP, &a::IMP, 4 },{ "ORA", &a::ORA, &a::ABS, 4 },{ "ASL", &a::ASL, &a::ABS, 6 },{ "???", &a::XXX, &a::IMP, 6 },
 		{ "BPL", &a::BPL, &a::REL, 2 },{ "ORA", &a::ORA, &a::IZY, 5 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 8 },{ "???", &a::NOP, &a::IMP, 4 },{ "ORA", &a::ORA, &a::ZPX, 4 },{ "ASL", &a::ASL, &a::ZPX, 6 },{ "???", &a::XXX, &a::IMP, 6 },{ "CLC", &a::CLC, &a::IMP, 2 },{ "ORA", &a::ORA, &a::ABY, 4 },{ "???", &a::NOP, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 7 },{ "???", &a::NOP, &a::IMP, 4 },{ "ORA", &a::ORA, &a::ABX, 4 },{ "ASL", &a::ASL, &a::ABX, 7 },{ "???", &a::XXX, &a::IMP, 7 },
 		{ "JSR", &a::JSR, &a::ABS, 6 },{ "AND", &a::AND, &a::IZX, 6 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 8 },{ "BIT", &a::BIT, &a::ZP0, 3 },{ "AND", &a::AND, &a::ZP0, 3 },{ "ROL", &a::ROL, &a::ZP0, 5 },{ "???", &a::XXX, &a::IMP, 5 },{ "PLP", &a::PLP, &a::IMP, 4 },{ "AND", &a::AND, &a::IMM, 2 },{ "ROL", &a::ROL, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 2 },{ "BIT", &a::BIT, &a::ABS, 4 },{ "AND", &a::AND, &a::ABS, 4 },{ "ROL", &a::ROL, &a::ABS, 6 },{ "???", &a::XXX, &a::IMP, 6 },
 		{ "BMI", &a::BMI, &a::REL, 2 },{ "AND", &a::AND, &a::IZY, 5 },{ "???", &a::XXX, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 8 },{ "???", &a::NOP, &a::IMP, 4 },{ "AND", &a::AND, &a::ZPX, 4 },{ "ROL", &a::ROL, &a::ZPX, 6 },{ "???", &a::XXX, &a::IMP, 6 },{ "SEC", &a::SEC, &a::IMP, 2 },{ "AND", &a::AND, &a::ABY, 4 },{ "???", &a::NOP, &a::IMP, 2 },{ "???", &a::XXX, &a::IMP, 7 },{ "???", &a::NOP, &a::IMP, 4 },{ "AND", &a::AND, &a::ABX, 4 },{ "ROL", &a::ROL, &a::ABX, 7 },{ "???", &a::XXX, &a::IMP, 7 },
@@ -107,7 +107,7 @@ uint8_t cpu::ZP0(){
 //ZPX ($00, X)
 uint8_t cpu::ZPX(){
 	//Effective address calculation
-	uint8_t addr = ((read(pc) + x) % 256);
+	uint8_t addr = ((read(pc) + xreg) % 256);
 	pc++;
 	uint8_t operand = read(addr);
 	fetched = operand;
@@ -117,7 +117,7 @@ uint8_t cpu::ZPX(){
 //ZPY ($00, Y)
 uint8_t cpu::ZPY(){
 	//Effective address calculation
-	uint8_t addr = ((read(pc) + y) % 256);
+	uint8_t addr = ((read(pc) + yreg) % 256);
 	pc++;
 	uint8_t operand = read(addr);
 	fetched = operand;
@@ -151,7 +151,7 @@ uint8_t cpu::ABX(){
 	pc++;
 
 	//effective address
-	uint16_t addr = (((lowByte + (highByte * 256)) + x) & 0xFFFF);
+	uint16_t addr = (((lowByte + (highByte * 256)) + xreg) & 0xFFFF);
 
 	fetched = read(addr);
 	return fetched;
@@ -168,7 +168,7 @@ uint8_t cpu::ABY(){
 	pc++;
 
 	//effective address
-	uint16_t addr = (((lowByte + (highByte * 256)) + y) & 0xFFFF);
+	uint16_t addr = (((lowByte + (highByte * 256)) + yreg) & 0xFFFF);
 
 	fetched = read(addr);
 	return fetched;
@@ -182,8 +182,8 @@ uint8_t cpu::IZX(){
 	uint8_t arg = read(pc);
 	// pc++;
 
-	uint8_t lowByte = read((arg + x) % 256);
-	uint8_t highByte = read(((arg + x + 1) % 256)) * 256;
+	uint8_t lowByte = read((arg + xreg) % 256);
+	uint8_t highByte = read(((arg + xreg + 1) % 256)) * 256;
 
 	//Effective address
 	uint16_t addr = lowByte + highByte;
@@ -204,7 +204,7 @@ uint8_t cpu::IZY(){
 	uint8_t highByte = read((arg + 1) % 256) * 256;
 
 	//effective address
-	uint16_t addr = lowByte + highByte + y;
+	uint16_t addr = lowByte + highByte + yreg;
 
 	fetched = read(addr);
 	return fetched;
