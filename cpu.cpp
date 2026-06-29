@@ -22,18 +22,18 @@ uint8_t cpu::read(uint16_t addr){
 }
 
 void cpu::clock(){
-    if(cycles == 0){
+    if(cycle == 0){
         opcode = read(pc);
         pc++;
 
-        cycles = lookup[opcode].cycles;
+        cycle = lookup[opcode].cycles;
         (this->*lookup[opcode].addrmode)();
         (this->*lookup[opcode].operate)();
     }
 
 
 	else{
-		cycles -= 1;  //cycles reduces with every tick
+		cycle -= 1;  //cycles reduces with every tick
 	}
 }
 
@@ -84,7 +84,13 @@ uint8_t cpu::getFlag(FLAGSTAT flag){
 
 
 
-//-----------------addrMode Functions-----------------
+
+/**
+ * ---------------addrmode functions--------------------
+ * It is important that these functions only operate on calculation of effective addresses
+ * and nothing else. They should only set the addr_main variable. They should never read/write to an address
+ * unless that address contains bytes for the effective address. 
+ */
 
 //IMM
 uint8_t cpu::IMM(){
@@ -99,9 +105,9 @@ uint8_t cpu::IMM(){
 uint8_t cpu::ZP0(){
 	//Read from the 0 page
 	uint8_t addr = read(pc);
-	// pc++; xxxxx
-	fetched = read(addr);
-	return fetched;
+	pc++;
+	addr_main = addr;
+    return 0;
 }
 
 //ZPX ($00, X)
@@ -109,9 +115,10 @@ uint8_t cpu::ZPX(){
 	//Effective address calculation
 	uint8_t addr = ((read(pc) + xreg) % 256);
 	pc++;
-	uint8_t operand = read(addr);
-	fetched = operand;
-	return operand;
+
+	// addr_main = 7 >> addr; no need to shift upper bytes will be 0 anyway. 
+    addr_main = addr;
+    return 0;
 }
 
 //ZPY ($00, Y)
@@ -119,9 +126,9 @@ uint8_t cpu::ZPY(){
 	//Effective address calculation
 	uint8_t addr = ((read(pc) + yreg) % 256);
 	pc++;
-	uint8_t operand = read(addr);
-	fetched = operand;
-	return operand;
+	
+    addr_main = addr;
+    return 0;
 }
 
 //ABS $0000
@@ -136,9 +143,8 @@ uint8_t cpu::ABS(){
 	//effective address
 	uint16_t addr = (lowByte + (highByte * 256));
 
-	uint8_t operand = read(addr);
-	fetched = operand;
-	return operand;
+	addr_main = addr;
+    return 0;
 }
 
 //ABX ($0000, X)
@@ -150,11 +156,35 @@ uint8_t cpu::ABX(){
 	uint8_t highByte = read(pc);
 	pc++;
 
+
 	//effective address
 	uint16_t addr = (((lowByte + (highByte * 256)) + xreg) & 0xFFFF);
 
-	fetched = read(addr);
-	return fetched;
+
+
+
+    //Check for page crossing 
+    if(!((highByte * 256) == (addr & 0xFF00) )){
+
+
+        //all opcodes that will be effected by a page cross (cycle + 1)
+        switch(opcode){
+            case 0x7d:
+            case 0x3d:
+            case 0xdd:
+            case 0x5d:
+            case 0xbd:
+            case 0xbc:
+            case 0x1d:
+            case 0xfd:
+                page_crossed = 1;
+                break;
+
+        }
+    }
+
+	addr_main = addr; // ONLY NEED TO RETURN THE ADDRESS NOT READ THE DATA.
+	return 0;
 }
 
 
@@ -169,9 +199,28 @@ uint8_t cpu::ABY(){
 
 	//effective address
 	uint16_t addr = (((lowByte + (highByte * 256)) + yreg) & 0xFFFF);
+        //Check for page crossing 
+    if(!((highByte * 256) == (addr & 0xFF00) )){
 
-	fetched = read(addr);
-	return fetched;
+
+        //all opcodes that will be effected by a page cross (cycle + 1)
+        switch(opcode){
+            case 0x79:
+            case 0x39:
+            case 0xd9:
+            case 0x59:
+            case 0xb9:
+            case 0xbe:
+            case 0x19:
+            case 0xf9:
+                page_crossed = 1;
+                break;
+
+        }
+    }
+
+	addr_main = addr;
+	return 0;
 }
 
 //
@@ -188,9 +237,9 @@ uint8_t cpu::IZX(){
 	//Effective address
 	uint16_t addr = lowByte + highByte;
 
-	fetched = read(addr);
+	addr_main = addr;
 
-	return fetched;
+	return 0;
 
 
 }
@@ -206,8 +255,41 @@ uint8_t cpu::IZY(){
 	//effective address
 	uint16_t addr = lowByte + highByte + yreg;
 
-	fetched = read(addr);
-	return fetched;
+    //check for page crossing
+    if(!(highByte * 256 == (addr & 0xFF00))){
+          //all opcodes that will be effected by a page cross (cycle + 1)
+        switch(opcode){
+            case 0x71:
+            case 0x31:
+            case 0xd1:
+            case 0x51:
+            case 0xb1:
+            case 0x11:
+            case 0xf1:
+                page_crossed = 1;
+                break;
+
+        }
+        
+    }
+
+	addr_main = addr;
+	return 0;
+}
+
+
+uint8_t cpu::IMP(){
+
+    switch(opcode){
+        //...add more ACC opcodes here
+        case 0x0a:
+            use_acc = 1;
+            break;
+
+    }
+
+
+    return 0;
 }
 
 
@@ -218,6 +300,8 @@ uint8_t cpu::IZY(){
 
 //Add with carry
 uint8_t cpu::ADC(){
+
+    fetched = read(addr_main);
 	int result = acc + fetched + getFlag(C);
 
 
@@ -225,13 +309,67 @@ uint8_t cpu::ADC(){
 	setFlag(C, (result > 0xff));
 	setFlag(Z, (result == 0));
 	//If the result's sign is different from both A's and memory's, signed overflow (or underflow) occurred.
-	setFlag(V, ((result ^ acc) & (result ^ fetched) & 0x80));
-	setFlag(N, result & 0x80);
-	acc = result && 0xff; // accumulator can only have the lower 8 bits
+	setFlag(V, (bool)((result ^ acc) & (result ^ fetched ) & 0x80));
+	setFlag(N, (bool)(result & 0x80));
+	acc = result & 0xff; // accumulator can only have the lower 8 bits
+
+    if(page_crossed){
+        cycle += 1;
+        page_crossed = 0;
+    }
 
 
 	return acc;
 
+}
+
+//Bitwise AND
+uint8_t cpu::AND(){
+    fetched = read(addr_main);
+    acc = acc & fetched;
+
+    setFlag(Z, (acc == 0));
+    setFlag(N, (bool)(acc & 0x80));
+
+
+    if(page_crossed){
+        cycle += 1;
+        page_crossed = 0;
+    }
+
+
+    return acc;
+
+
+}
+
+//Arithmetic shift left (by 1)   C <- [76543210] <- 0
+uint8_t cpu::ASL(){
+
+    //operating on accumulator?
+    if(use_acc){
+        setFlag(C, (bool)(acc >> 7 & 0x01));
+        acc = acc << 1;
+        setFlag(Z, acc == 0x00);
+        setFlag(N, (bool)(acc & 0x80));
+
+        use_acc = 0;
+
+    }
+
+    //operating on memory address?
+    else{
+
+        fetched = read(addr_main);
+        setFlag(C, (bool)(fetched >> 7 & 0x01));
+        fetched = fetched << 1;
+        setFlag(Z, fetched == 0x00);
+        setFlag(N, (bool)(fetched & 0x80));
+
+        write(addr_main, fetched);
+    }
+
+    return fetched;
 }
 
 

@@ -10,7 +10,7 @@ private:
         Bus* bus = nullptr; //initial bus state
         void write(uint16_t a, uint8_t d);
         uint8_t read(uint16_t addr);
-        uint8_t cycles;
+        
 
         //Instruction structure
         struct INSTRUCTION
@@ -21,6 +21,8 @@ private:
             uint8_t cycles = 0;
 
         };
+
+     
 
         vector<INSTRUCTION> lookup;
 
@@ -43,6 +45,8 @@ public:
         N = (1 << 7), //Negative
 
     };
+
+    
 
     //Accumulator, Registers(x,y), stack pointer, program counter and status register
     uint8_t acc = 0x00;
@@ -98,6 +102,10 @@ public:
     uint16_t addr_rel = 0x00; //when jumping, what is the relative address from the current address
     uint8_t opcode = 0x00; //current opcode 
     uint8_t cycle = 0x00; //number of cycles remaining for current instruction.
+    uint8_t page_crossed = 0x00; //internal signal to denote page crossing.
+    uint8_t use_acc = 0x00; //internal signal to denote that IMP is actually ACC (using accumulator addrmode)
+
+    
 
 
 
