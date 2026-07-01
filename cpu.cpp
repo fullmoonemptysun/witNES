@@ -417,6 +417,7 @@ uint8_t cpu::CLC(){
 // CLD: Clear decimal flag
 uint8_t cpu::CLD(){ 
     
+    setFlag(D, 0);
     return 0; 
 }
 
@@ -636,7 +637,7 @@ uint8_t cpu::LSR(){
         setFlag(Z, fetched == 0x00);
         setFlag(N, 0);
 
-        use_acc = 0;
+    
 
         write(addr_main, fetched);
     }
@@ -656,12 +657,14 @@ uint8_t cpu::ORA(){
 
     setFlag(Z, acc == 0);
     setFlag(N, (bool)(acc & 0x80));
-    return acc; 
+   
 
     if(page_crossed){
         cycle += 1;
         page_crossed = 0;
     }
+
+    return acc; 
 }
 
 // PHA: Push accumulator to stack
@@ -676,6 +679,8 @@ uint8_t cpu::PHA(){
 uint8_t cpu::PHP(){ 
     uint8_t flags = status | 0b00110000;
     push(flags);
+
+    return 0;
 
  }
 
@@ -694,6 +699,7 @@ uint8_t cpu::PLA(){
 uint8_t cpu::PLP(){ 
     status = (pop() & ~(B|U)) | (status & (B|U)); // TODO: I should not be changed immediately fix this when IRQ is done
 
+    return 0;
  }
 
 // ROL: Rotate left through carry flag
@@ -812,41 +818,93 @@ uint8_t cpu::SBC(){
 uint8_t cpu::SEC(){ 
     
     setFlag(C, 1);
-
+    return 0;
 }
 
 // SED: Set decimal flag
-uint8_t cpu::SED(){ return 0; }
+uint8_t cpu::SED(){ 
+    setFlag(D, 1);
+    return 0;
+ }
 
 // SEI: Set interrupt disable flag
-uint8_t cpu::SEI(){ return 0; }
+uint8_t cpu::SEI(){ 
+    setFlag(I, 1);
+    return 0; //TODO: this needs to be delayed one instruction
+ }
 
 // STA: Store accumulator value into memory
-uint8_t cpu::STA(){ return 0; }
+uint8_t cpu::STA(){ 
+    
+    write(addr_main, acc);
+    return 0;
+
+ }
 
 // STX: Store X register value into memory
-uint8_t cpu::STX(){ return 0; }
+uint8_t cpu::STX(){ 
+    
+    write (addr_main, xreg);
+    return 0;
+ }
 
 // STY: Store Y register value into memory
-uint8_t cpu::STY(){ return 0; }
+uint8_t cpu::STY(){ 
+    write(addr_main, yreg);
+    return 0; }
 
 // TAX: Transfer accumulator to X register
-uint8_t cpu::TAX(){ return 0; }
+uint8_t cpu::TAX(){ 
+    xreg = acc;
+
+    setFlag(Z, acc == 0);
+    setFlag(N, (bool)(xreg & 0x80));
+    return 0;
+ }
 
 // TAY: Transfer accumulator to Y register
-uint8_t cpu::TAY(){ return 0; }
+uint8_t cpu::TAY(){ 
+    yreg = acc;
+
+    setFlag(Z, acc == 0);
+    setFlag(N, (bool)(yreg & 0x80));
+    
+    return 0; }
 
 // TSX: Transfer stack pointer to X register
-uint8_t cpu::TSX(){ return 0; }
+uint8_t cpu::TSX(){ 
+    xreg = stkp;
+    setFlag(Z, stkp == 0);
+    setFlag(N, (bool)(xreg & 0x80));
+ }
 
 // TXA: Transfer X register to accumulator
-uint8_t cpu::TXA(){ return 0; }
+uint8_t cpu::TXA(){ 
+    
+    acc = xreg;
+    setFlag(Z, acc == 0);
+    setFlag(N, (bool)(acc & 0x80));
+    
+    return 0; }
 
 // TXS: Transfer X register to stack pointer
-uint8_t cpu::TXS(){ return 0; }
+uint8_t cpu::TXS(){
+    
+    stkp = xreg;
+
+    
+    return 0;
+ }
 
 // TYA: Transfer Y register to accumulator
-uint8_t cpu::TYA(){ return 0; }
+uint8_t cpu::TYA(){ 
+    
+    acc = yreg;
+    setFlag(Z, acc == 0);
+    setFlag(N, (bool)(acc & 0x80));
+    
+    return 0;
+}
 
 
 
