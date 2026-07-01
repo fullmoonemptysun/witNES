@@ -95,10 +95,10 @@ uint8_t cpu::getFlag(FLAGSTAT flag){
 //IMM
 uint8_t cpu::IMM(){
 	//the next byte after opcode is the 8 bit operand.
-	fetched = read(pc);
-	// pc++; THIS SHOULD BE DONE IN THE MAIN INSTRUCTION AFTER EVERYTHING IS COMPLETE UNLESS IT IS FOR INTERMEDIATE DATA. 
+	addr_main = pc; 
+    pc++;
 	
-	return fetched;
+	return pc;
 }
 
 //ZP0
@@ -371,6 +371,482 @@ uint8_t cpu::ASL(){
 
     return fetched;
 }
+
+
+//Branch if carry clear (BCC)
+uint8_t cpu::BCC(){
+    //TODO: implement REL addrmode
+}
+
+
+
+// BCS: Branch if carry flag is set
+uint8_t cpu::BCS(){ return 0; }
+
+// BEQ: Branch if zero flag is set (values equal)
+uint8_t cpu::BEQ(){ return 0; }
+
+// BIT: Test bits in memory against accumulator
+uint8_t cpu::BIT(){ return 0; }
+
+// BMI: Branch if negative flag is set (result minus)
+uint8_t cpu::BMI(){ return 0; }
+
+// BNE: Branch if zero flag is clear (values not equal)
+uint8_t cpu::BNE(){ return 0; }
+
+// BPL: Branch if negative flag is clear (result plus)
+uint8_t cpu::BPL(){ return 0; }
+
+// BRK: Force software interrupt (IRQ)
+uint8_t cpu::BRK(){ return 0; }
+
+// BVC: Branch if overflow flag is clear
+uint8_t cpu::BVC(){ return 0; }
+
+// BVS: Branch if overflow flag is set
+uint8_t cpu::BVS(){ return 0; }
+
+// CLC: Clear carry flag
+uint8_t cpu::CLC(){ 
+    
+    setFlag(C, 0);
+    return 0; 
+}
+
+// CLD: Clear decimal flag
+uint8_t cpu::CLD(){ 
+    
+    return 0; 
+}
+
+// CLI: Clear interrupt disable flag
+uint8_t cpu::CLI(){ 
+
+    setFlag(I, 0);
+    
+    return 0; }
+
+// CLV: Clear overflow flag
+uint8_t cpu::CLV(){ 
+    
+    setFlag(V, 0);
+    return 0; }
+
+// CMP: Compare accumulator with memory
+uint8_t cpu::CMP(){ 
+    fetched = read(addr_main);
+    setFlag(C, (acc >= fetched));
+    setFlag(Z, (acc == fetched));
+    setFlag(N, (bool)((acc - fetched) & 0x80));
+
+    return 0; }
+
+// CPX: Compare X register with memory
+uint8_t cpu::CPX(){ 
+    fetched = read(addr_main);
+    setFlag(C, (xreg >= fetched));
+    setFlag(Z, (xreg == fetched));
+    setFlag(N, (bool)((xreg - fetched) & 0x80));
+
+    return 0; }
+
+// CPY: Compare Y register with memory
+uint8_t cpu::CPY(){ 
+    
+    fetched = read(addr_main);
+    setFlag(C, (yreg >= fetched));
+    setFlag(Z, (yreg == fetched));
+    setFlag(N, (bool)((yreg - fetched) & 0x80));
+
+    return 0; }
+
+// DEC: Decrement memory value by 1
+uint8_t cpu::DEC(){ 
+    
+    fetched = read(addr_main);
+    fetched -= 1;
+    write(addr_main, fetched);
+    setFlag(Z, fetched == 0);
+    setFlag(N, (bool)(fetched & 0x80));
+
+    
+    return 0; }
+
+// DEX: Decrement X register by 1
+uint8_t cpu::DEX(){ 
+    
+    xreg -= 1;
+
+    setFlag(Z, xreg == 0);
+    setFlag(N, (bool)(xreg & 0x80));
+    
+    return 0; }
+
+// DEY: Decrement Y register by 1
+uint8_t cpu::DEY(){    
+    yreg -= 1;
+
+    setFlag(Z, yreg == 0);
+    setFlag(N, (bool)(yreg & 0x80));
+    
+    return 0; }
+
+// EOR: Bitwise exclusive OR memory with accumulator
+uint8_t cpu::EOR(){ 
+    
+    fetched = read(addr_main);
+
+    acc = acc ^ fetched;
+
+    setFlag(Z, acc == 0);
+    setFlag(N, (bool)(acc & 0x80));
+
+    if(page_crossed){
+        cycle += 1;
+        page_crossed = 0;
+    }
+    
+    return 0; }
+
+// INC: Increment memory value by 1
+uint8_t cpu::INC(){ 
+    fetched = read(addr_main);
+    fetched += 1;
+    write(addr_main, fetched);
+    setFlag(Z, fetched == 0);
+    setFlag(N, (bool)(fetched & 0x80));
+
+    
+    return 0; }
+
+
+// INX: Increment X register by 1
+uint8_t cpu::INX(){    
+    xreg += 1;
+
+    setFlag(Z, xreg == 0);
+    setFlag(N, (bool)(xreg & 0x80));
+    
+    return 0; }
+
+// INY: Increment Y register by 1
+uint8_t cpu::INY(){ 
+    yreg += 1;
+
+    setFlag(Z, yreg == 0);
+    setFlag(N, (bool)(yreg & 0x80));
+    
+    return 0;
+}
+
+// JMP: Jump to new program counter location
+uint8_t cpu::JMP(){ 
+    //TODO: Implement the INDIRECT addrmode 
+    return 0; 
+}
+
+// JSR: Jump to subroutine, pushing return address to stack
+uint8_t cpu::JSR(){ 
+    
+    push((pc & 0xff00) >> 8); //push high byte
+    push(pc); //push low byte
+
+    pc = addr_main; // set new PC
+    return addr_main; 
+
+}
+
+// LDA: Load memory value into accumulator
+uint8_t cpu::LDA(){ 
+    fetched = read(addr_main);
+    acc = fetched;
+
+    setFlag(Z, fetched == 0);
+    setFlag(N, (bool)(fetched & 0x80));
+
+
+    if(page_crossed){
+        cycle += 1;
+        page_crossed = 0;
+    }
+
+    
+    return 0; 
+}
+
+// LDX: Load memory value into X register
+uint8_t cpu::LDX(){ 
+    
+    fetched = read(addr_main);
+    xreg = fetched;
+
+    setFlag(Z, fetched == 0);
+    setFlag(N, (bool)(fetched & 0x80));
+
+
+    if(page_crossed){
+        cycle += 1;
+        page_crossed = 0;
+    }
+
+    
+    return 0;  
+
+}
+
+// LDY: Load memory value into Y register
+uint8_t cpu::LDY(){ 
+    
+    fetched = read(addr_main);
+    yreg = fetched;
+
+    setFlag(Z, fetched == 0);
+    setFlag(N, (bool)(fetched & 0x80));
+
+
+    if(page_crossed){
+        cycle += 1;
+        page_crossed = 0;
+    }
+
+    
+    return 0; 
+}
+
+// LSR: Logical shift right by 1 bit
+uint8_t cpu::LSR(){ 
+    //operating on accumulator?
+    if(use_acc){
+        setFlag(C, (bool)(acc & 0x01));
+        acc = acc >> 1;
+        setFlag(Z, acc == 0x00);
+        setFlag(N, 0);
+
+        use_acc = 0;
+
+    }
+
+    //operating on memory address?
+    else{
+
+        fetched = read(addr_main);
+        setFlag(C, (bool)(fetched & 0x01));
+        fetched = fetched >> 1;
+        setFlag(Z, fetched == 0x00);
+        setFlag(N, 0);
+
+        use_acc = 0;
+
+        write(addr_main, fetched);
+    }
+
+    return fetched;
+
+ }
+
+// NOP: No operation, waste cycles
+uint8_t cpu::NOP(){ return 0; }
+
+// ORA: Bitwise OR memory with accumulator
+uint8_t cpu::ORA(){
+    
+    fetched = read(addr_main);
+    acc = acc | fetched;
+
+    setFlag(Z, acc == 0);
+    setFlag(N, (bool)(acc & 0x80));
+    return acc; 
+
+    if(page_crossed){
+        cycle += 1;
+        page_crossed = 0;
+    }
+}
+
+// PHA: Push accumulator to stack
+uint8_t cpu::PHA(){
+
+    push(acc);
+    return acc;
+
+ }
+
+// PHP: Push processor status flags to stack
+uint8_t cpu::PHP(){ 
+    uint8_t flags = status | 0b00110000;
+    push(flags);
+
+ }
+
+// PLA: Pull accumulator from stack
+uint8_t cpu::PLA(){ 
+    
+    acc = pop();
+    setFlag(Z, acc == 0);
+    setFlag(N, (bool)(acc & 0x80));
+
+    return acc;
+
+}
+
+// PLP: Pull processor status flags from stack
+uint8_t cpu::PLP(){ 
+    status = (pop() & ~(B|U)) | (status & (B|U)); // TODO: I should not be changed immediately fix this when IRQ is done
+
+ }
+
+// ROL: Rotate left through carry flag
+uint8_t cpu::ROL(){ 
+
+    //operating on accumulator?
+    if(use_acc){
+        
+        int tempC = getFlag(C);
+        setFlag(C, (bool)(acc >> 7 & 0x01));
+        acc = (acc << 1) | tempC ;
+        setFlag(Z, acc == 0x00);
+        setFlag(N, (bool)(acc & 0x80));
+
+        use_acc = 0;
+
+    }
+
+    //operating on memory address?
+    else{
+
+        fetched = read(addr_main);
+
+        int tempC = getFlag(C);
+        setFlag(C, (bool)(fetched >> 7 & 0x01));
+        fetched = fetched << 1 | tempC;
+        setFlag(Z, fetched == 0x00);
+        setFlag(N, (bool)(fetched & 0x80));
+
+        write(addr_main, fetched);
+    }
+
+    return fetched;
+
+ }
+
+// ROR: Rotate right through carry flag
+uint8_t cpu::ROR(){ 
+    
+    //operating on accumulator?
+    if(use_acc){
+        
+        int tempC = getFlag(C);
+        setFlag(C, (bool)(acc & 0x01));
+        acc = (acc >> 1) | tempC << 7 ;
+        setFlag(Z, acc == 0x00);
+        setFlag(N, (bool)(acc & 0x80));
+
+        use_acc = 0;
+
+    }
+
+    //operating on memory address?
+    else{
+
+        fetched = read(addr_main);
+
+        int tempC = getFlag(C);
+        setFlag(C, (bool)(fetched & 0x01));
+        fetched = fetched >> 1 | tempC << 7;
+        setFlag(Z, fetched == 0x00);
+        setFlag(N, (bool)(fetched & 0x80));
+
+        write(addr_main, fetched);
+    }
+
+    return fetched;
+
+}
+
+// RTI: Return from interrupt, pulling flags and PC from stack
+uint8_t cpu::RTI(){ 
+    status = (pop() & ~(B|U)) | (status & (B|U));
+    uint8_t lo = pop();
+    uint8_t hi = pop();
+
+    pc = (hi << 8) | lo;
+
+    return 0;
+ }
+
+// RTS: Return from subroutine, pulling PC from stack
+uint8_t cpu::RTS(){ 
+    uint8_t lo = pop();
+    uint8_t hi = pop();
+
+    pc = (hi << 8) | lo;
+
+    return 0;
+ }
+
+// SBC: Subtract memory and inverted carry from accumulator
+//is used after SEC (set C = 1). So we do acc + 1's complement + 1 = two's complement subtraction. 
+uint8_t cpu::SBC(){ 
+
+    fetched = read(addr_main);
+    int val = acc + ~fetched + (getFlag(C));
+
+    setFlag(C, (bool)(!(val < 0x00)));
+    setFlag(Z, val == 0);
+    setFlag(V, (bool)((val ^ acc)&(val ^ ~fetched) & 0x80));
+    setFlag(N, (bool)(val & 0x80));
+
+    acc = val;
+
+    if(page_crossed){
+        cycle += 1;
+        page_crossed = 0;
+    }
+
+    return 0;
+
+ }
+
+// SEC: Set carry flag
+uint8_t cpu::SEC(){ 
+    
+    setFlag(C, 1);
+
+}
+
+// SED: Set decimal flag
+uint8_t cpu::SED(){ return 0; }
+
+// SEI: Set interrupt disable flag
+uint8_t cpu::SEI(){ return 0; }
+
+// STA: Store accumulator value into memory
+uint8_t cpu::STA(){ return 0; }
+
+// STX: Store X register value into memory
+uint8_t cpu::STX(){ return 0; }
+
+// STY: Store Y register value into memory
+uint8_t cpu::STY(){ return 0; }
+
+// TAX: Transfer accumulator to X register
+uint8_t cpu::TAX(){ return 0; }
+
+// TAY: Transfer accumulator to Y register
+uint8_t cpu::TAY(){ return 0; }
+
+// TSX: Transfer stack pointer to X register
+uint8_t cpu::TSX(){ return 0; }
+
+// TXA: Transfer X register to accumulator
+uint8_t cpu::TXA(){ return 0; }
+
+// TXS: Transfer X register to stack pointer
+uint8_t cpu::TXS(){ return 0; }
+
+// TYA: Transfer Y register to accumulator
+uint8_t cpu::TYA(){ return 0; }
 
 
 

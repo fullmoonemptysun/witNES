@@ -39,6 +39,7 @@ public:
         C = (1 << 0), //Carry Bit
         Z = (1 << 1), //Zero
         I = (1 << 2), //No Interrupts
+        D = (1 << 3), //Decimal mode (UNUSED)
         B = (1 << 4), //Break
         U = (1 << 5), //Unused
         V = (1 << 6), //Overflow
@@ -52,7 +53,7 @@ public:
     uint8_t acc = 0x00;
     uint8_t xreg = 0x00;
     uint8_t yreg = 0x00;
-    uint8_t stkp = 0x00;
+    uint8_t stkp = 0x00; //stack pointer
     uint16_t pc = 0x0000;
     uint8_t status = 0x00;
 
@@ -94,7 +95,9 @@ public:
     void nmi();
 
 
-    //uint8_t fetch(); //an instruction might need some data this will get that data
+    
+
+
 
     uint8_t fetched = 0x00; // I will use this as the main intermediate data buffer
 
@@ -105,6 +108,9 @@ public:
     uint8_t page_crossed = 0x00; //internal signal to denote page crossing.
     uint8_t use_acc = 0x00; //internal signal to denote that IMP is actually ACC (using accumulator addrmode)
 
+
+
+
     
 
 
@@ -114,6 +120,28 @@ public:
 private:
     void setFlag(FLAGSTAT f, bool v);
     uint8_t getFlag(FLAGSTAT f);
+
+
+    //stack operations 
+    //pushes a value to the stkp
+    void push(uint8_t value){
+        uint16_t addr = 0x0100 + stkp;
+
+        write(addr, value);
+
+        stkp--; //stack grows downwards.
+    }
+
+    //pops a value from the stkp
+    uint8_t pop(){
+        stkp++;
+        uint16_t addr = 0x0100 + stkp;
+        uint8_t result = read(addr);
+      
+
+
+        return result;
+    }
 
 
 };
