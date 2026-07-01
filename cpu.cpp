@@ -101,6 +101,22 @@ uint8_t cpu::IMM(){
 	return pc;
 }
 
+//REL (8 bit signed offset from current PC)
+uint8_t cpu::REL(){
+    //the next byte after opcode is the 8 bit signed offset
+
+    int offset = read(pc);
+    pc++;
+    addr_main = pc + offset;
+
+    if(((pc ^ addr_main) & 0xff00)){
+
+        page_crossed = 1;
+    }
+
+    return offset;
+}
+
 //ZP0
 uint8_t cpu::ZP0(){
 	//Read from the 0 page
@@ -375,37 +391,138 @@ uint8_t cpu::ASL(){
 
 //Branch if carry clear (BCC)
 uint8_t cpu::BCC(){
-    //TODO: implement REL addrmode
+    if(!(getFlag(C))){
+        pc = addr_main;
+        cycle += 1;
+        if(page_crossed){
+            cycle += 1;
+            page_crossed = 0;
+        }
+    }
+
+    return 0;
 }
 
 
 
 // BCS: Branch if carry flag is set
-uint8_t cpu::BCS(){ return 0; }
+uint8_t cpu::BCS(){ 
+    if((getFlag(C))){
+        pc = addr_main;
+        cycle += 1;
+        if(page_crossed){
+            cycle += 1;
+            page_crossed = 0;
+        }
+    }
+
+    return 0;
+ }
 
 // BEQ: Branch if zero flag is set (values equal)
-uint8_t cpu::BEQ(){ return 0; }
+uint8_t cpu::BEQ(){ 
+    if((getFlag(Z))){
+        pc = addr_main;
+        cycle += 1;
+        if(page_crossed){
+            cycle += 1;
+            page_crossed = 0;
+        }
+    }
+
+    return 0;
+
+ }
 
 // BIT: Test bits in memory against accumulator
-uint8_t cpu::BIT(){ return 0; }
+uint8_t cpu::BIT(){ 
+    
+    fetched = read(addr_main);
+    uint8_t result = acc & fetched;
+    setFlag(Z, result == 0);
+    setFlag(V, (bool)(fetched & 0b01000000));
+    setFlag(N, (bool)(fetched & 0x80));
+    return 0; }
 
 // BMI: Branch if negative flag is set (result minus)
-uint8_t cpu::BMI(){ return 0; }
+uint8_t cpu::BMI(){ 
+    if((getFlag(N))){
+        pc = addr_main;
+        cycle += 1;
+
+        if(page_crossed){
+            cycle += 1;
+            page_crossed = 0;
+        }
+
+    }
+
+    return 0;
+     }
 
 // BNE: Branch if zero flag is clear (values not equal)
-uint8_t cpu::BNE(){ return 0; }
+uint8_t cpu::BNE(){ 
+    if(!(getFlag(Z))){
+        pc = addr_main;
+        cycle += 1;
+        if(page_crossed){
+            cycle += 1;
+            page_crossed = 0;
+        }
+    }
+
+    return 0;
+ }
 
 // BPL: Branch if negative flag is clear (result plus)
-uint8_t cpu::BPL(){ return 0; }
+uint8_t cpu::BPL(){ 
+    if(!(getFlag(N))){
+        pc = addr_main;
+        cycle += 1;
+        if(page_crossed){
+            cycle += 1;
+            page_crossed = 0;
+        }
+    }
+
+    return 0;
+ }
 
 // BRK: Force software interrupt (IRQ)
-uint8_t cpu::BRK(){ return 0; }
+uint8_t cpu::BRK(){ 
+    pc++; // skip the extra byte that BRK operates with $00
+    irq();
+
+    return 0;
+ }
 
 // BVC: Branch if overflow flag is clear
-uint8_t cpu::BVC(){ return 0; }
+uint8_t cpu::BVC(){ 
+    if(!(getFlag(V))){
+        pc = addr_main;
+        cycle += 1;
+        if(page_crossed){
+            cycle += 1;
+            page_crossed = 0;
+        }
+    }
+
+    return 0;
+ }
 
 // BVS: Branch if overflow flag is set
-uint8_t cpu::BVS(){ return 0; }
+uint8_t cpu::BVS(){ 
+    if((getFlag(V))){
+        pc = addr_main;
+        cycle += 1;
+        if(page_crossed){
+            cycle += 1;
+            page_crossed = 0;
+        }
+    }
+
+    return 0;
+ }
 
 // CLC: Clear carry flag
 uint8_t cpu::CLC(){ 

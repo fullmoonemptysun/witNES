@@ -91,7 +91,18 @@ public:
 
     /*Control Signals that interrupt processes*/
     void reset();
-    void irq(); 
+    void irq(){
+        push(pc >> 8); //upper bits will be truncated
+        push(pc); //same
+
+        push(status | 0b00110000);
+        setFlag(I, 1);
+
+        pc = read(0xFFFE) | (read(0xFFFF) << 8);
+
+
+
+    }
     void nmi();
 
 
@@ -122,7 +133,7 @@ private:
     uint8_t getFlag(FLAGSTAT f);
 
 
-    //stack operations 
+    //stack operations----------------------
     //pushes a value to the stkp
     void push(uint8_t value){
         uint16_t addr = 0x0100 + stkp;
@@ -137,9 +148,7 @@ private:
         stkp++;
         uint16_t addr = 0x0100 + stkp;
         uint8_t result = read(addr);
-      
-
-
+    
         return result;
     }
 
