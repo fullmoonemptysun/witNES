@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "cartridge.h"
 #include <array>
 #include <cstdlib>
 #include <cstdint>
@@ -10,11 +11,14 @@ class Bus
 private:
     /* data */
 public:
-    Bus(/* args */);
+    Bus(const string& filename);
     ~Bus();
 
 public://devices on bus
     cpu cpu;
+    Cartridge* cart;
+   
+
     array<uint8_t, 64 * 128> ram; //Fake RAM
 
 

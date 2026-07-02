@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
-#include "Bus.h"
+
 using namespace std;
 
 
@@ -15,6 +15,7 @@ using namespace std;
  * TODO: I am using only 1 kind of mapper (NROM-128/256. So I do not read the mapper nibbles. Fix this when extending for more games.
  */
 
+class Bus;
 class Cartridge {
 
     public:
@@ -75,7 +76,7 @@ class Cartridge {
         vector<uint8_t> prg_rom;
         vector<uint8_t> chr_rom;
         Bus * bus;
-        uint8_t data;
+        uint8_t data= 0x00;
 
 
 };
