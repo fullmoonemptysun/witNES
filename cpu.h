@@ -46,6 +46,8 @@ public:
         N = (1 << 7), //Negative
 
     };
+    
+
 
     
 
@@ -53,9 +55,9 @@ public:
     uint8_t acc = 0x00;
     uint8_t xreg = 0x00;
     uint8_t yreg = 0x00;
-    uint8_t stkp = 0x00; //stack pointer
-    uint16_t pc = 0x0000;
-    uint8_t status = 0x00;
+    uint8_t stkp = 0xfd; //stack pointer
+    uint16_t pc = 0xFFFC;
+    uint8_t status = 0b00100000;
 
     void ConnectBus(Bus* n); //add a bus reference to the CPU
 
@@ -100,9 +102,9 @@ public:
 
         pc = read(0xFFFE) | (read(0xFFFF) << 8);
 
-
-
     }
+
+    //non maskable interrupt
     void nmi();
 
 

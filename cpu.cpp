@@ -21,6 +21,16 @@ uint8_t cpu::read(uint16_t addr){
         return bus -> read(addr, false);
 }
 
+//reset signal (if needed)
+void cpu::reset(){
+    uint8_t acc = 0x00;
+    uint8_t xreg = 0x00;
+    uint8_t yreg = 0x00;
+    uint8_t stkp = 0xfd; //stack pointer
+    uint16_t pc = 0xFFFC;
+    uint8_t status = 0b00100000;
+}
+
 void cpu::clock(){
     if(cycle == 0){
         opcode = read(pc);
