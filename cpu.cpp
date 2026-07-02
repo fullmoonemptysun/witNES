@@ -23,12 +23,12 @@ uint8_t cpu::read(uint16_t addr){
 
 //reset signal (if needed)
 void cpu::reset(){
-    uint8_t acc = 0x00;
-    uint8_t xreg = 0x00;
-    uint8_t yreg = 0x00;
-    uint8_t stkp = 0xfd; //stack pointer
-    uint16_t pc = 0xFFFC;
-    uint8_t status = 0b00100000;
+    acc = 0x00;
+    xreg = 0x00;
+    yreg = 0x00;
+    stkp = 0xfd; //stack pointer
+    pc = read(0xFFFC)|read((0xFFFD) << 8);
+    status = 0b00100000;
 }
 
 void cpu::clock(){
@@ -39,6 +39,7 @@ void cpu::clock(){
         cycle = lookup[opcode].cycles;
         (this->*lookup[opcode].addrmode)();
         (this->*lookup[opcode].operate)();
+        cycle -= 1;
     }
 
 

@@ -6,7 +6,10 @@ using namespace std;
 int main(int argc, char const *argv[])
 {
 
-        Bus bus;
+
+
+
+        Bus bus(argv[1]);
         bus.cpu.clock(); // start the CPU
 
         bus.cpu.clock(); // 1st cycle
