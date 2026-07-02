@@ -3,11 +3,16 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
-
+#include "Bus.h"
 using namespace std;
+
+
+
 
 /**
  * The actual cartridge where all the data will be loaded from the ines file.
+ * 
+ * TODO: I am using only 1 kind of mapper (NROM-128/256. So I do not read the mapper nibbles. Fix this when extending for more games.
  */
 
 class Cartridge {
@@ -23,25 +28,54 @@ class Cartridge {
             }
 
             //read header
-            file.read((char *)header.data(),16);
+            file.read((char *)header.data(),16); //cast because .read expects a char* buffer (C-style function).
 
-            trainer.resize(512);
+            
             prg_rom.resize( 16384 * header[4]);
-            chr_rom.resize(8192 * header[5]);
-         };
-        ~Cartridge();
+          
 
-        uint8_t read(uint16_t addr);
-        uint8_t write(uint16_t addr, uint8_t value);
+            //trainer exists
+            if(header[6] & 0b00000100){
+                trainer.resize(512);
+                //read trainer
+                file.read((char*)trainer.data(), 512);
+            }
+
+            file.read((char*)prg_rom.data(), prg_rom.size());
+
+            //CHR-ROM exists
+            if(header[5] != 0){
+                chr_rom.resize( 8192 * header[5]);
+                file.read((char*)chr_rom.data(), chr_rom.size());
+            }
+
+
+            this->mapper = (((header[6] & 0b11110000)>>4) | (header[7] & 0b11110000));
+
+
+
+         };
+        ~Cartridge(){};
+
+        void ConnectBus(Bus* n){bus = n;}
+
+        uint8_t cpu_read(uint16_t addr);
+        uint8_t cpu_write(uint16_t addr, uint8_t value);
+
+        //TODO: Implement PPU's read and write
+        uint8_t mapper = 0x00;
 
 
 
     private:
+        
 
         vector<uint8_t> header;
         vector<uint8_t> trainer;
         vector<uint8_t> prg_rom;
         vector<uint8_t> chr_rom;
+        Bus * bus;
+        uint8_t data;
 
 
 };
