@@ -48,13 +48,13 @@ string toHex(uint8_t val){
 
 
 
-int main(int argc, char const *argv[])
-{
+// int main(int argc, char const *argv[])
+// {
     
-    int val = atoi(argv[1]);
+//     int val = atoi(argv[1]);
 
-    cout << toHex((uint16_t)val)<< endl;
-    return 0;
-}
+//     cout << toHex((uint16_t)val)<< endl;
+//     return 0;
+// }
 
 

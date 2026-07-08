@@ -2,10 +2,23 @@
 #include <cstdint>
 #include <iostream>
 #include "Bus.h"
+#include "disasm.h"
 
 
 
 using namespace std; 
+
+
+//GLOBAL DISASSEMBLY STATEMENT
+struct disst {
+    string addr;
+    vector<string> bytes;
+    string opname;
+    vector<string> operands;
+};
+
+
+disst log;
 
 //----------------IMPLEMENT ALL CLASS FUNCTIONS-------------------
 void cpu::ConnectBus(Bus* n){bus = n;}
@@ -34,7 +47,32 @@ void cpu::reset(){
 void cpu::clock(){
     if(cycle == 0){
         opcode = read(pc);
+
+        //Disassembly---------------------------------------------------------
+        log.addr = toHex(pc);
+        log.bytes.push_back(toHex((uint8_t)opcode));
+        //which addrmode is the current instruction in
+        if(this->lookup[opcode].addrmode == &cpu::IMM){
+            //next byte is 8 bit operand
+           
+            log.bytes.push_back(toHex((uint8_t)(read(pc+1))));
+            log.opname = this->lookup[opcode].name;
+            string operand = "#$" + log.bytes.at(1);
+            log.operands.push_back(operand);
+        }
+
+        else if(this->lookup[opcode].addrmode == &cpu::REL){
+            //next byte is 8 bit signed offset
+            log.bytes.push_back(toHex((uint8_t)(read(pc+1))));
+            log.opname = this->lookup[opcode].name;
+            string operand = "$" + toHex((uint16_t)((pc + 2 + read(pc+1)) & 0xFF));
+            log.operands.push_back(operand);
+        }
+
+
         pc++;
+
+        
 
         cycle = lookup[opcode].cycles;
         (this->*lookup[opcode].addrmode)();
