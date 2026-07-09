@@ -12,7 +12,7 @@ using namespace std;
 /**
  * The actual cartridge where all the data will be loaded from the ines file.
  * 
- * TODO: I am using only 1 kind of mapper (NROM-128/256. So I do not read the mapper nibbles. Fix this when extending for more games.
+ * TODO: I am using only 1 kind of mapper (NROM-128/256) for now. So I do not read the mapper nibbles. Fix this when extending for more games.
  */
 
 class Bus;
@@ -56,7 +56,7 @@ class Cartridge {
 
 
          };
-        ~Cartridge(){};
+       
 
         void ConnectBus(Bus* n){bus = n;}
 

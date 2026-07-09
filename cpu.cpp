@@ -14,7 +14,7 @@ struct disst {
     string addr;
     vector<string> bytes;
     string opname;
-    vector<string> operands;
+   
 };
 
 
@@ -51,23 +51,26 @@ void cpu::clock(){
         //Disassembly---------------------------------------------------------
         log.addr = toHex(pc);
         log.bytes.push_back(toHex((uint8_t)opcode));
-        //which addrmode is the current instruction in
-        if(this->lookup[opcode].addrmode == &cpu::IMM){
-            //next byte is 8 bit operand
-           
+
+        //2 byte instructions
+        if((this->lookup[opcode].addrmode == &cpu::REL)||(this->lookup[opcode].addrmode == &cpu::IMM)||(this->lookup[opcode].addrmode == &cpu::ZP0)||(this->lookup[opcode].addrmode == &cpu::ZPX) || (this->lookup[opcode].addrmode == &cpu::ZPY) || (this->lookup[opcode].addrmode == &cpu::IZX) || (this->lookup[opcode].addrmode == &cpu::IZY)){
             log.bytes.push_back(toHex((uint8_t)(read(pc+1))));
             log.opname = this->lookup[opcode].name;
-            string operand = "#$" + log.bytes.at(1);
-            log.operands.push_back(operand);
         }
 
-        else if(this->lookup[opcode].addrmode == &cpu::REL){
-            //next byte is 8 bit signed offset
+        //3 byte instructions
+        else if((this->lookup[opcode].addrmode == &cpu::ABS)||(this->lookup[opcode].addrmode == &cpu::ABX) || (this->lookup[opcode].addrmode == &cpu::ABY) || (this->lookup[opcode].addrmode == &cpu::IND)){
             log.bytes.push_back(toHex((uint8_t)(read(pc+1))));
+            log.bytes.push_back(toHex((uint8_t)(read(pc+2))));
             log.opname = this->lookup[opcode].name;
-            string operand = "$" + toHex((uint16_t)((pc + 2 + read(pc+1)) & 0xFF));
-            log.operands.push_back(operand);
         }
+
+        //1 byte instruction
+        else if(this->lookup[opcode].addrmode == &cpu::IMP){
+            log.opname = this->lookup[opcode].name;
+        }
+
+     
 
 
         pc++;
@@ -77,6 +80,16 @@ void cpu::clock(){
         cycle = lookup[opcode].cycles;
         (this->*lookup[opcode].addrmode)();
         (this->*lookup[opcode].operate)();
+        
+        //disassembly------
+
+        cout << log.addr << "  ";
+        for(string &str:log.bytes){
+            cout << str << ' ';
+        }
+        cout << ' ' << log.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp);
+
+        //-----------------
         cycle -= 1;
     }
 
@@ -346,7 +359,10 @@ uint8_t cpu::IZY(){
 uint8_t cpu::IMP(){
 
     switch(opcode){
-        //...add more ACC opcodes here
+        
+        case 0x4a:
+        case 0x2a:
+        case 0x6a:
         case 0x0a:
             use_acc = 1;
             break;
@@ -357,7 +373,21 @@ uint8_t cpu::IMP(){
     return 0;
 }
 
+uint8_t cpu::IND(){
+    uint8_t lowbyte = read(pc);
+    pc++;
+    uint8_t hibyte = read(pc);
+    pc++;
 
+    uint16_t addr = (hibyte << 8) + lowbyte;
+
+    lowbyte = read(addr);
+    hibyte = read(addr+1);
+
+    addr_main = (hibyte << 8) + lowbyte;
+
+    return 0;
+}
 
 
 
@@ -709,7 +739,8 @@ uint8_t cpu::INY(){
 
 // JMP: Jump to new program counter location
 uint8_t cpu::JMP(){ 
-    //TODO: Implement the INDIRECT addrmode 
+    
+    pc = addr_main;
     return 0; 
 }
 

@@ -9,6 +9,12 @@ int main(int argc, char const *argv[])
 
     Bus bus(argv[1]); //creates cpu and cartridge
 
+
+
+    while(bus.cpu.pc < 0xc6b5){
+        bus.cpu.clock();
+    }
+
     
     
         
