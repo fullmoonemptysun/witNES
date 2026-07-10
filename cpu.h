@@ -1,3 +1,6 @@
+#ifndef CPU_H
+#define CPU_H
+
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -156,4 +159,6 @@ private:
 
 
 };
+
+#endif
 

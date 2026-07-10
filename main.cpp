@@ -11,10 +11,9 @@ int main(int argc, char const *argv[])
 
 
 
-    while(bus.cpu.pc < 0xc6b5){
-        bus.cpu.clock();
+    while(bus.witcpu.pc < 0xc6b5){
+        bus.witcpu.clock();
     }
-
     
     
         

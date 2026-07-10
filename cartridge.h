@@ -1,3 +1,7 @@
+
+#ifndef CART_H
+#define CART_H
+
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -80,3 +84,6 @@ class Cartridge {
 
 
 };
+
+
+#endif

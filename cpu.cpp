@@ -18,7 +18,7 @@ struct disst {
 };
 
 
-disst log;
+disst dislog;
 
 //----------------IMPLEMENT ALL CLASS FUNCTIONS-------------------
 void cpu::ConnectBus(Bus* n){bus = n;}
@@ -49,25 +49,25 @@ void cpu::clock(){
         opcode = read(pc);
 
         //Disassembly---------------------------------------------------------
-        log.addr = toHex(pc);
-        log.bytes.push_back(toHex((uint8_t)opcode));
+        dislog.addr = toHex(pc);
+        dislog.bytes.push_back(toHex((uint8_t)opcode));
 
         //2 byte instructions
         if((this->lookup[opcode].addrmode == &cpu::REL)||(this->lookup[opcode].addrmode == &cpu::IMM)||(this->lookup[opcode].addrmode == &cpu::ZP0)||(this->lookup[opcode].addrmode == &cpu::ZPX) || (this->lookup[opcode].addrmode == &cpu::ZPY) || (this->lookup[opcode].addrmode == &cpu::IZX) || (this->lookup[opcode].addrmode == &cpu::IZY)){
-            log.bytes.push_back(toHex((uint8_t)(read(pc+1))));
-            log.opname = this->lookup[opcode].name;
+            dislog.bytes.push_back(toHex((uint8_t)(read(pc+1))));
+            dislog.opname = this->lookup[opcode].name;
         }
 
         //3 byte instructions
         else if((this->lookup[opcode].addrmode == &cpu::ABS)||(this->lookup[opcode].addrmode == &cpu::ABX) || (this->lookup[opcode].addrmode == &cpu::ABY) || (this->lookup[opcode].addrmode == &cpu::IND)){
-            log.bytes.push_back(toHex((uint8_t)(read(pc+1))));
-            log.bytes.push_back(toHex((uint8_t)(read(pc+2))));
-            log.opname = this->lookup[opcode].name;
+            dislog.bytes.push_back(toHex((uint8_t)(read(pc+1))));
+            dislog.bytes.push_back(toHex((uint8_t)(read(pc+2))));
+            dislog.opname = this->lookup[opcode].name;
         }
 
         //1 byte instruction
         else if(this->lookup[opcode].addrmode == &cpu::IMP){
-            log.opname = this->lookup[opcode].name;
+            dislog.opname = this->lookup[opcode].name;
         }
 
      
@@ -83,11 +83,11 @@ void cpu::clock(){
         
         //disassembly------
 
-        cout << log.addr << "  ";
-        for(string &str:log.bytes){
+        cout << dislog.addr << "  ";
+        for(string &str:dislog.bytes){
             cout << str << ' ';
         }
-        cout << ' ' << log.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp);
+        cout << ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << endl;
 
         //-----------------
         cycle -= 1;

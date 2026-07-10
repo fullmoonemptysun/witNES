@@ -1,3 +1,5 @@
+#ifndef BUS_H
+#define BUS_H
 #include "cpu.h"
 #include "cartridge.h"
 #include <array>
@@ -15,7 +17,7 @@ public:
     ~Bus();
 
 public://devices on bus
-    cpu cpu;
+    cpu witcpu;
     Cartridge* cart;
    
 
@@ -28,3 +30,6 @@ public:
     void write(uint16_t addr, uint8_t data);
     uint8_t read(uint16_t addr, bool bReadOnly = false);
 };
+
+
+#endif

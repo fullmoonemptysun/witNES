@@ -13,7 +13,7 @@ Bus::Bus(const string& filename){
     }
 
     cart = new Cartridge(filename);
-    cpu.ConnectBus(this);
+    witcpu.ConnectBus(this);
     cart->ConnectBus(this);
 
 }
