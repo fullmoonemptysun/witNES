@@ -32,7 +32,7 @@ private:
 
 public:
          cpu(/* args */);
-         ~cpu();
+         ~cpu() {};
     
 
 
@@ -89,7 +89,9 @@ public:
 	uint8_t STX();	uint8_t STY();	uint8_t TAX();	uint8_t TAY();
 	uint8_t TSX();	uint8_t TXA();	uint8_t TXS();	uint8_t TYA();
 
-    uint8_t XXX(); //for unofficial opcodes.
+    uint8_t XXX() {
+        return 0;
+    }; //for unofficial opcodes.
 
 
     void clock(); //External signal that indicates one cycle has occurred
@@ -108,7 +110,7 @@ public:
     }
 
     //non maskable interrupt
-    void nmi();
+    void nmi() {};
 
 
     

@@ -40,7 +40,7 @@ void cpu::reset(){
     xreg = 0x00;
     yreg = 0x00;
     stkp = 0xfd; //stack pointer
-    pc = read(0xFFFC)|read((0xFFFD) << 8);
+    pc = read(0xFFFC)|(read(0xFFFD) << 8);
     status = 0b00100000;
 }
 
@@ -1073,6 +1073,8 @@ uint8_t cpu::TSX(){
     xreg = stkp;
     setFlag(Z, stkp == 0);
     setFlag(N, (bool)(xreg & 0x80));
+
+    return 0;
  }
 
 // TXA: Transfer X register to accumulator

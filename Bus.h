@@ -14,7 +14,7 @@ private:
     /* data */
 public:
     Bus(const string& filename);
-    ~Bus();
+    ~Bus() {};
 
 public://devices on bus
     cpu witcpu;
