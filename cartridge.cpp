@@ -11,6 +11,7 @@ uint8_t Cartridge::cpu_read(uint16_t addr){
     
     switch(mapper){
         case 0x00: //NROM
+        cout << "CPU READING FROM NROM CARTRIDGE" << endl;
             if(header[4] == 2){
                 data = prg_rom[addr - 0x8000];
             }

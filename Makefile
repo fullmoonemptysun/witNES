@@ -1,4 +1,9 @@
 
+all: witnes
+	make clean
+	make witnes
+
+
 run: witnes
 	./witnes ../nestest.nes
 

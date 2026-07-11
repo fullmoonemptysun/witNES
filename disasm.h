@@ -1,3 +1,7 @@
+#ifndef DIS_H
+#define DIS_H
+
+
 #include <string>
 #include <cstdint>
 #include <algorithm>
@@ -16,3 +20,6 @@ string toHex(uint8_t val);
 
 
 
+
+
+#endif

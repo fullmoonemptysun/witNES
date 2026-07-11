@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+#include "disasm.h"
 
 using namespace std;
 
@@ -38,6 +39,20 @@ class Cartridge {
             //read header
             file.read((char *)header.data(),16); //cast because .read expects a char* buffer (C-style function).
 
+
+
+            //DEBUG iNES HEADER -------------------------------------------
+            cout << "[ " ;
+            for (int i = 0; i < header.size(); i++)
+            {
+                cout << ((int)(header.at(i))) << ", ";
+            }
+            cout << " ]" << endl;
+            //DEBU iNES HEADER ---------------------------------------------
+
+
+            
+
             cout << "HEADER CREATED, CREATING PRG_ROM" << '\n';
             
             prg_rom.resize( 16384 * header[4]);
@@ -63,7 +78,7 @@ class Cartridge {
 
 
             this->mapper = (((header[6] & 0b11110000)>>4) | (header[7] & 0b11110000));
-            cout << "MAPPER READ: " << this->mapper << '\n';
+            cout << "MAPPER READ: " << (int)(this->mapper) << '\n';
 
 
 

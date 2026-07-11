@@ -18,7 +18,7 @@ public:
 
 public://devices on bus
     Cartridge* cart;
-    cpu witcpu;
+    cpu* witcpu;
    
    
 
