@@ -17,8 +17,9 @@ public:
     ~Bus() {};
 
 public://devices on bus
-    cpu witcpu;
     Cartridge* cart;
+    cpu witcpu;
+   
    
 
     array<uint8_t, 64 * 128> ram; //Fake RAM

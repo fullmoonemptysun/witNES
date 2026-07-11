@@ -59,7 +59,7 @@ public:
     uint8_t xreg = 0x00;
     uint8_t yreg = 0x00;
     uint8_t stkp = 0xfd; //stack pointer
-    uint16_t pc = 0xFFFC;
+    uint16_t pc = read(0xFFFC)|(read(0xFFFD) << 8);
     uint8_t status = 0b00100000;
 
     void ConnectBus(Bus* n); //add a bus reference to the CPU
