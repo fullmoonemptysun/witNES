@@ -5,6 +5,9 @@
 using namespace std;
 
 uint8_t Cartridge::cpu_read(uint16_t addr){
+
+
+    cout << "CARTRIDGE'S CPU_READ WAS CALLED" << '\n';
     
     switch(mapper){
         case 0x00: //NROM
