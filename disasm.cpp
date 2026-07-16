@@ -31,7 +31,7 @@ string toHex(uint8_t val){
     if(val == 0x00){
         return "00";
     }
-    while (dec != 0){
+    while (val != 0){
         hex += hexstr[val % 16];
         val /= 16;
         

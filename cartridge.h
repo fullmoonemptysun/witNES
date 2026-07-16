@@ -27,7 +27,7 @@ class Cartridge {
          Cartridge(const string &filename){
 
 
-            cout << "CREATING CARTRIDGE NOW" << '\n';
+            // cout << "CREATING CARTRIDGE NOW" << '\n';
             header.resize(16);
             ifstream file(filename, ios::binary);
             //file not opened 
@@ -42,18 +42,18 @@ class Cartridge {
 
 
             //DEBUG iNES HEADER -------------------------------------------
-            cout << "[ " ;
-            for (int i = 0; i < header.size(); i++)
-            {
-                cout << ((int)(header.at(i))) << ", ";
-            }
-            cout << " ]" << endl;
-            //DEBU iNES HEADER ---------------------------------------------
+            // cout << "[ " ;
+            // for (int i = 0; i < header.size(); i++)
+            // {
+                //cout << ((int)(header.at(i))) << ", ";
+            // }
+            // cout << " ]" << endl;
+            //DEBUg iNES HEADER ---------------------------------------------
 
 
             
-
-            cout << "HEADER CREATED, CREATING PRG_ROM" << '\n';
+//debug
+            // cout << "HEADER CREATED, CREATING PRG_ROM" << '\n';
             
             prg_rom.resize( 16384 * header[4]);
           
@@ -68,7 +68,7 @@ class Cartridge {
 
             file.read((char*)prg_rom.data(), prg_rom.size());
 
-            cout << "PRG_ROM CREATED!" << '\n';
+            // cout << "PRG_ROM CREATED!" << '\n';
 
             //CHR-ROM exists
             if(header[5] != 0){
@@ -78,7 +78,7 @@ class Cartridge {
 
 
             this->mapper = (((header[6] & 0b11110000)>>4) | (header[7] & 0b11110000));
-            cout << "MAPPER READ: " << (int)(this->mapper) << '\n';
+            // cout << "MAPPER READ: " << (int)(this->mapper) << '\n';
 
 
 

@@ -79,7 +79,8 @@ uint8_t Bus:: read(uint16_t addr, bool bReadonly){
 
         //prg_rom region
         else if(addr >= 0x8000 && addr <= 0xffff){
-            cout << "BUS TRIED READING FROM PRG_ROM" << '\n';
+            //debug
+            // cout << "BUS TRIED READING FROM PRG_ROM" << '\n';
             return cart->cpu_read(addr);
         }
 

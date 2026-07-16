@@ -40,13 +40,23 @@ void cpu::reset(){
     xreg = 0x00;
     yreg = 0x00;
     stkp = 0xfd; //stack pointer
-    pc = read(0xFFFC)|(read(0xFFFD) << 8);
-    status = 0b00100000;
+    // pc = read(0xFFFC)|(read(0xFFFD) << 8); correct way
+    pc = 0xC000; // to test nestest HARDCODED
+    status = 0b00100100;
 }
 
 void cpu::clock(){
     if(cycle == 0){
+
+
+        // //debug
+        // cout << "LAST CYCLE ENDED!" << '\n';
+        // cout << "READING OPCODE..." << '\n';
         opcode = read(pc);
+
+        //DEBUG
+        
+        // cout << "OPCODE READ: "<< toHex(opcode) << '\n';
 
         //Disassembly---------------------------------------------------------
         dislog.addr = toHex(pc);
@@ -54,26 +64,47 @@ void cpu::clock(){
 
         //2 byte instructions
         if((this->lookup[opcode].addrmode == &cpu::REL)||(this->lookup[opcode].addrmode == &cpu::IMM)||(this->lookup[opcode].addrmode == &cpu::ZP0)||(this->lookup[opcode].addrmode == &cpu::ZPX) || (this->lookup[opcode].addrmode == &cpu::ZPY) || (this->lookup[opcode].addrmode == &cpu::IZX) || (this->lookup[opcode].addrmode == &cpu::IZY)){
+            dislog.bytes.push_back(" ");
             dislog.bytes.push_back(toHex((uint8_t)(read(pc+1))));
+            dislog.bytes.push_back("    ");
             dislog.opname = this->lookup[opcode].name;
         }
 
         //3 byte instructions
         else if((this->lookup[opcode].addrmode == &cpu::ABS)||(this->lookup[opcode].addrmode == &cpu::ABX) || (this->lookup[opcode].addrmode == &cpu::ABY) || (this->lookup[opcode].addrmode == &cpu::IND)){
+            dislog.bytes.push_back(" ");
             dislog.bytes.push_back(toHex((uint8_t)(read(pc+1))));
+            dislog.bytes.push_back(" ");
             dislog.bytes.push_back(toHex((uint8_t)(read(pc+2))));
+            dislog.bytes.push_back(" ");
             dislog.opname = this->lookup[opcode].name;
         }
 
         //1 byte instruction
         else if(this->lookup[opcode].addrmode == &cpu::IMP){
+            dislog.bytes.push_back("       ");
             dislog.opname = this->lookup[opcode].name;
         }
+
+        
+        //disassembly------
+
+        cout << dislog.addr << "  ";
+        for(string &str:dislog.bytes){
+            cout << str;
+        }
+        cout << ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << endl;
+
+        dislog.bytes.clear();
+
+        //-----------------
 
      
 
 
         pc++;
+
+
 
         
 
@@ -81,15 +112,7 @@ void cpu::clock(){
         (this->*lookup[opcode].addrmode)();
         (this->*lookup[opcode].operate)();
         
-        //disassembly------
 
-        cout << dislog.addr << "  ";
-        for(string &str:dislog.bytes){
-            cout << str << ' ';
-        }
-        cout << ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << endl;
-
-        //-----------------
         cycle -= 1;
     }
 
@@ -133,6 +156,7 @@ void cpu::setFlag(FLAGSTAT flag, bool b){
 
 	//clear the flag
 	else{
+        
 		status &= ~flag;
 
 	}
@@ -307,10 +331,10 @@ uint8_t cpu::ABY(){
 //Peek(Peek((arg + X)%256) + Peek((arg+X + 1) % 256) * 256)
 uint8_t cpu::IZX(){
 	uint8_t arg = read(pc);
-	// pc++;
+	pc++;
 
 	uint8_t lowByte = read((arg + xreg) % 256);
-	uint8_t highByte = read(((arg + xreg + 1) % 256)) * 256;
+	uint16_t highByte = read(((arg + xreg + 1) % 256)) * 256;
 
 	//Effective address
 	uint16_t addr = lowByte + highByte;
@@ -326,9 +350,9 @@ uint8_t cpu::IZX(){
 //PEEK(PEEK(arg) + PEEK((arg+1) % 256) * 256 + Y)
 uint8_t cpu::IZY(){
 	uint8_t arg = read(pc);
-	// pc++;
+	pc++;
 	uint8_t lowByte = read(arg);
-	uint8_t highByte = read((arg + 1) % 256) * 256;
+	uint16_t highByte = read((arg + 1) % 256) * 256;
 
 	//effective address
 	uint16_t addr = lowByte + highByte + yreg;
@@ -402,7 +426,7 @@ uint8_t cpu::ADC(){
 
 
 	setFlag(C, (result > 0xff));
-	setFlag(Z, (result == 0));
+	setFlag(Z, ((result & 0xff) == 0));
 	//If the result's sign is different from both A's and memory's, signed overflow (or underflow) occurred.
 	setFlag(V, (bool)((result ^ acc) & (result ^ fetched ) & 0x80));
 	setFlag(N, (bool)(result & 0x80));
@@ -747,8 +771,8 @@ uint8_t cpu::JMP(){
 // JSR: Jump to subroutine, pushing return address to stack
 uint8_t cpu::JSR(){ 
     
-    push((pc & 0xff00) >> 8); //push high byte
-    push(pc); //push low byte
+    push(((pc-1) & 0xff00) >> 8); //push high byte
+    push(pc-1); //push low byte
 
     pc = addr_main; // set new PC
     return addr_main; 
@@ -983,7 +1007,7 @@ uint8_t cpu::RTS(){
     uint8_t lo = pop();
     uint8_t hi = pop();
 
-    pc = (hi << 8) | lo;
+    pc = ((hi << 8) | lo) + 1;
 
     return 0;
  }
