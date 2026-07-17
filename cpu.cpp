@@ -1,3 +1,9 @@
+/**
+ * 2026
+ * Author: Vinnie Kumar
+ * If using this CPU implementation for your emulator, please give credit wherever appropriate.
+ */
+
 #include <cstdlib>
 #include <cstdint>
 #include <iostream>
