@@ -15,7 +15,7 @@ int main(int argc, char const *argv[])
     // cout << toHex(cpubus->witcpu->pc) << endl;
     // while(cpubus->witcpu->pc < 0xc700){
 
-    for(int i = 0; i < 10000; i++){
+    for(int i = 0; i < 15000; i++){
 
         // cout << "ENTERED LOOP" <<'\n';
         cpubus->witcpu->clock();

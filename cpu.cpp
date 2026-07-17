@@ -400,13 +400,13 @@ uint8_t cpu::IMP(){
 uint8_t cpu::IND(){
     uint8_t lowbyte = read(pc);
     pc++;
-    uint8_t hibyte = read(pc);
+    uint16_t hibyte = read(pc);
     pc++;
 
     uint16_t addr = (hibyte << 8) + lowbyte;
 
     lowbyte = read(addr);
-    hibyte = read(addr+1);
+    hibyte = read(((addr+1) & 0x00FF) | (addr & 0xFF00)); //6502's JMP INDIRECT BUG. (PAGE CROSSING CANNOT HAPPEN)
 
     addr_main = (hibyte << 8) + lowbyte;
 
