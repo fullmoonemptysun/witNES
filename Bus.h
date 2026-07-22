@@ -2,6 +2,7 @@
 #define BUS_H
 #include "cpu.h"
 #include "cartridge.h"
+#include "ppubus.h"
 #include <array>
 #include <cstdlib>
 #include <cstdint>
@@ -19,6 +20,7 @@ public:
 public://devices on bus
     Cartridge* cart;
     cpu* witcpu;
+    PPUBus* ppub;
    
    
 

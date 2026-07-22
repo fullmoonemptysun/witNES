@@ -21,6 +21,7 @@ class PPUBus{
         ppu* witppu;
 
         uint8_t vram[10000]; //vram 10 kilobytes
+        uint8_t latch = 0x00; //latch value of this bus (last read/write)
 
 
 };

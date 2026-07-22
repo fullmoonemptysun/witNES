@@ -3,6 +3,7 @@
 #include "Bus.h"
 
 
+
 using namespace std;
 
 Bus::Bus(const string& filename){
@@ -14,6 +15,7 @@ Bus::Bus(const string& filename){
 
     cart = new Cartridge(filename);
     witcpu = new cpu();
+    ppub = new PPUBus();
     cart->ConnectBus(this);
     witcpu->ConnectBus(this);
     
@@ -40,7 +42,14 @@ void Bus:: write(uint16_t addr, uint8_t data){
         else if((addr >= 0x1800 && addr <= 0x1fff)) {
             ram[addr - 0x1800] = data;
         }
+
+        else if(addr >= 0x2000 && addr <= 0x3fff){
+             ppub->write_register(addr, data);
+        }
+
+
     }
+
 
 
 }
@@ -68,6 +77,9 @@ uint8_t Bus:: read(uint16_t addr, bool bReadonly){
 
 
         //TODO: read from NES PPU registers region and mirrors
+        else if(addr >= 0x2000 && addr <= 0x3fff){
+            return ppub->read_register(addr);
+        }
 
         //TODO: NES APU and I/O register regions
         //TODO: NES APU fun. that is disabled 
