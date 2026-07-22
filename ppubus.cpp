@@ -6,20 +6,24 @@ uint8_t PPUBus::read_register(uint16_t addr){
     if(addr >= 0x2000 && addr <= 2007){
         switch(addr){
             case 0x2000:
-                return witppu->ppuctrl;
+                return latch;
             case 0x2001:
-                return witppu->ppumask;
+                return latch;
             case 0x2002:
+                latch = witppu -> ppustatus; //latch fills with the data read.
                 return witppu->ppustatus;
             case 0x2003:
-                return witppu->oamaddr;
+                return latch;
             case 0x2004:
+                latch = witppu->oamdata; //fill latch w data
                 return witppu->oamdata;
             case 0x2005:
-                return witppu->ppuscroll;      
+
+                return latch;      
             case 0x2006:
-                return witppu->ppuaddr;    
+                return latch;    
             case 0x2007:
+                latch = witppu->ppudata;//fill latch with data
                 return witppu->ppudata;
             
         }
@@ -29,20 +33,24 @@ uint8_t PPUBus::read_register(uint16_t addr){
         uint16_t tmpaddr = (addr & 0x0007) + 0x2000;
         switch(tmpaddr){
             case 0x2000:
-                return witppu->ppuctrl;
+                return latch;
             case 0x2001:
-                return witppu->ppumask;
+                return latch;
             case 0x2002:
+                latch = witppu -> ppustatus; //latch fills with the data read.
                 return witppu->ppustatus;
             case 0x2003:
-                return witppu->oamaddr;
+                return latch;
             case 0x2004:
+                latch = witppu->oamdata; //fill latch w data
                 return witppu->oamdata;
             case 0x2005:
-                return witppu->ppuscroll;      
+
+                return latch;      
             case 0x2006:
-                return witppu->ppuaddr;    
+                return latch;    
             case 0x2007:
+                latch = witppu->ppudata;//fill latch with data
                 return witppu->ppudata;
             
         }
@@ -50,9 +58,14 @@ uint8_t PPUBus::read_register(uint16_t addr){
     }
 
 
+    else if(addr == 0x4014){
+        return latch;
+    }
+
+
     else{
         
-        cout << "READIN OUT OF PPU MMIO RANGE!!!" << endl;
+        cout << "READING OUT OF PPU MMIO RANGE!!!" << endl;
 
         return 0;
     }
@@ -63,21 +76,42 @@ void PPUBus::write_register(uint16_t addr, uint8_t data){
     if(addr >= 0x2000 && addr <= 2007){
         switch(addr){
             case 0x2000:
-                 witppu->ppuctrl = data;
+                witppu->ppuctrl = data;
+                latch = witppu->ppuctrl;
+                break;
+
             case 0x2001:
-                 witppu->ppumask = data;
+                witppu->ppumask = data;
+                latch = witppu->ppumask;
+                break;
+
             case 0x2002:
-                 witppu->ppustatus = data;
+                latch = data;
+                break;
+
             case 0x2003:
-                 witppu->oamaddr = data;
+                witppu->oamaddr = data;
+                latch = witppu->oamaddr;
+                break;
+
             case 0x2004:
-                 witppu->oamdata = data;
+                witppu->oamdata = data;
+                latch = witppu->oamdata;
+                break;
+
             case 0x2005:
-                 witppu->ppuscroll = data;      
+                witppu->ppuscroll = data;  
+                latch = witppu->ppuscroll;
+                break;
+
             case 0x2006:
-                 witppu->ppuaddr = data;    
+                witppu->ppuaddr = data; 
+                latch = witppu->ppuaddr;
+                break;   
             case 0x2007:
-                 witppu->ppudata = data;
+                witppu->ppudata = data;
+                latch = witppu->ppudata;
+                break;
             
         }
     }
@@ -86,24 +120,49 @@ void PPUBus::write_register(uint16_t addr, uint8_t data){
         uint16_t tmpaddr = (addr & 0x0007) + 0x2000;
         switch(tmpaddr){
             case 0x2000:
-                 witppu->ppuctrl = data;
+                witppu->ppuctrl = data;
+                latch = witppu->ppuctrl;
+                break;
+
             case 0x2001:
-                 witppu->ppumask = data;
+                witppu->ppumask = data;
+                latch = witppu->ppumask;
+                break;
+
             case 0x2002:
-                 witppu->ppustatus = data;
+                latch = data;
+                break;
+
             case 0x2003:
-                 witppu->oamaddr = data;
+                witppu->oamaddr = data;
+                latch = witppu->oamaddr;
+                break;
+
             case 0x2004:
-                 witppu->oamdata = data;
+                witppu->oamdata = data;
+                latch = witppu->oamdata;
+                break;
+
             case 0x2005:
-                 witppu->ppuscroll = data;      
+                witppu->ppuscroll = data;  
+                latch = witppu->ppuscroll;
+                break;
+
             case 0x2006:
-                 witppu->ppuaddr = data;    
+                witppu->ppuaddr = data; 
+                latch = witppu->ppuaddr;
+                break;   
             case 0x2007:
-                 witppu->ppudata = data;
+                witppu->ppudata = data;
+                latch = witppu->ppudata;
+                break;
             
         }
 
+    }
+
+    else if(addr == 0x4014){
+        //TODO: Implement write to OAMDMA 
     }
 
     else{
