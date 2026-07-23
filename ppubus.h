@@ -16,7 +16,7 @@ class PPUBus{
         
 
         uint8_t read_register(uint16_t addr);
-        void write_register(uint16_t addr, uint8_t data);
+        void write_register(uint16_t addr, uint8_t data, uint16_t totalCycles);
 
         ppu* witppu;
 

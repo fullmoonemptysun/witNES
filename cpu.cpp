@@ -120,11 +120,13 @@ void cpu::clock(){
         
 
         cycle -= 1;
+        cputicks += 1;
     }
 
 
 	else{
-		cycle -= 1;  //cycles reduces with every tick
+		cycle -= 1;
+        cputicks += 1;  //cycles reduces with every tick
 	}
 }
 

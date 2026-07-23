@@ -21,6 +21,7 @@ int main(int argc, char const *argv[])
         cpubus->witcpu->clock();
     }
 
+    cout << "TOTAL CYCLES: " << cpubus->witcpu->cputicks << '\n';
     cout << "DONE!!!!" << endl;
 
     return 0;   

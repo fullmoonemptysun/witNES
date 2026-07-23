@@ -25,6 +25,8 @@ uint8_t PPUBus::read_register(uint16_t addr){
             case 0x2007:
                 latch = witppu->ppudata;//fill latch with data
                 return witppu->ppudata;
+            default:
+                return 0;
             
         }
     }
@@ -53,6 +55,9 @@ uint8_t PPUBus::read_register(uint16_t addr){
                 latch = witppu->ppudata;//fill latch with data
                 return witppu->ppudata;
             
+            default:
+                return;
+            
         }
 
     }
@@ -72,17 +77,23 @@ uint8_t PPUBus::read_register(uint16_t addr){
 }
 
 
-void PPUBus::write_register(uint16_t addr, uint8_t data){
+void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles){
     if(addr >= 0x2000 && addr <= 2007){
         switch(addr){
             case 0x2000:
-                witppu->ppuctrl = data;
-                latch = witppu->ppuctrl;
+                if(cycles > 29658){
+                    witppu->ppuctrl = data;
+                    latch = witppu->ppuctrl;
+                }
+
                 break;
 
+
             case 0x2001:
+                if(cycles > 29658){
                 witppu->ppumask = data;
                 latch = witppu->ppumask;
+                }
                 break;
 
             case 0x2002:
@@ -100,13 +111,17 @@ void PPUBus::write_register(uint16_t addr, uint8_t data){
                 break;
 
             case 0x2005:
+                if(cycles > 29658){
                 witppu->ppuscroll = data;  
                 latch = witppu->ppuscroll;
+                }
                 break;
 
             case 0x2006:
+                if(cycles > 29658){
                 witppu->ppuaddr = data; 
                 latch = witppu->ppuaddr;
+                }
                 break;   
             case 0x2007:
                 witppu->ppudata = data;
@@ -120,6 +135,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data){
         uint16_t tmpaddr = (addr & 0x0007) + 0x2000;
         switch(tmpaddr){
             case 0x2000:
+
                 witppu->ppuctrl = data;
                 latch = witppu->ppuctrl;
                 break;
@@ -162,7 +178,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data){
     }
 
     else if(addr == 0x4014){
-        //TODO: Implement write to OAMDMA 
+        
     }
 
     else{

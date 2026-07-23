@@ -49,6 +49,9 @@ public:
         N = (1 << 7), //Negative
 
     };
+
+    //total ticks ran (for ppu reference)
+    uint16_t cputicks = 0x0000;
     
 
 

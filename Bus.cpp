@@ -44,7 +44,7 @@ void Bus:: write(uint16_t addr, uint8_t data){
         }
 
         else if(addr >= 0x2000 && addr <= 0x3fff){
-             ppub->write_register(addr, data);
+             ppub->write_register(addr, data, witcpu->cputicks);
         }
 
 

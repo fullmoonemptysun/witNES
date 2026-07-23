@@ -7,8 +7,8 @@ all: witnes
 run: witnes
 	@./witnes ../nestest.nes
 
-witnes: disasm.cpp cpu.cpp cartridge.cpp Bus.cpp main.cpp
-	@g++ -o witnes ./disasm.cpp ./cpu.cpp ./cartridge.cpp ./Bus.cpp ./main.cpp
+witnes: disasm.cpp cpu.cpp ppu.cpp ppubus.cpp cartridge.cpp Bus.cpp main.cpp
+	@g++ -o witnes ./disasm.cpp ./cpu.cpp ./cartridge.cpp ./Bus.cpp ./ppubus.cpp ./ppu.cpp ./main.cpp
 	@chmod u+x ./witnes
 
 
