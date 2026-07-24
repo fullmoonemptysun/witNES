@@ -77,8 +77,14 @@ class Cartridge {
             }
 
 
+
+
+
             this->mapper = (((header[6] & 0b11110000)>>4) | (header[7] & 0b11110000));
             // cout << "MAPPER READ: " << (int)(this->mapper) << '\n';
+
+
+            this->mirroring = header[6] & 0b000000001;
 
 
 
@@ -92,6 +98,9 @@ class Cartridge {
 
         //TODO: Implement PPU's read and write
         uint8_t mapper = 0x00;
+        //mirroring. Currently only supports horizontal and vertical. 
+        uint8_t mirroring; // 0 means vertical 1 means horizontal.
+
 
 
 

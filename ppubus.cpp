@@ -2,6 +2,8 @@
 #include <iostream>
 using namespace std;
 
+
+//register operations for the cpu
 uint8_t PPUBus::read_register(uint16_t addr){
     if(addr >= 0x2000 && addr <= 2007){
         switch(addr){
@@ -76,10 +78,11 @@ uint8_t PPUBus::read_register(uint16_t addr){
     }
 }
 
-
 void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles){
     if(addr >= 0x2000 && addr <= 2007){
         switch(addr){
+
+            //PPUCTRL
             case 0x2000:
                 if(cycles > 29658){
                     witppu->ppuctrl = data;
@@ -89,9 +92,15 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles){
                 break;
 
 
+            //PPUMASK
             case 0x2001:
                 if(cycles > 29658){
                 witppu->ppumask = data;
+
+                //every write to ppumask may change the rendering status
+                witppu->bg_render_enable = (bool)(0b00001000 & witppu->ppumask);
+                witppu->sp_render_enable = (bool)(0b00010000 & witppu->ppumask);
+                
                 latch = witppu->ppumask;
                 }
                 break;
@@ -187,6 +196,19 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles){
 
     }
 }
+
+
+
+//memory operations (PPU <-> MEMORY)
+
+uint8_t PPUBus :: read_mem(uint16_t addr){
+    return vram[addr];
+}
+
+
+
+
+
 
 
 
