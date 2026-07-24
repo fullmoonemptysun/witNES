@@ -202,7 +202,18 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles){
 //memory operations (PPU <-> MEMORY)
 
 uint8_t PPUBus :: read_mem(uint16_t addr){
-    return vram[addr];
+    //vram read
+    if(addr >= 0x2000 && addr <= 0x27ff){
+       return vram[addr - 0x2000];
+    }
+    
+}
+
+void PPUBus :: write_mem(uint16_t addr, uint8_t data){
+    //vram 
+    if(addr >= 0x2000 && addr <= 0x27ff){
+        vram[addr - 0x2000] = data;
+    }
 }
 
 

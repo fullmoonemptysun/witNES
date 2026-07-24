@@ -51,6 +51,30 @@ class ppu {
 
         void clock();
 
+        void ConnectBus(PPUBus* b){
+            this->bus = b;
+        }
+
+
+
+        
+
+
+    private:
+
+        PPUBus * bus;
+
+     
+
+        uint8_t read(uint16_t addr){
+            return bus->read_mem(addr);
+        }
+
+        void write(uint16_t addr, uint8_t data){
+            bus->write_mem(addr, data);
+        }
+
+        uint8_t read_nt(int);
     
 };
 

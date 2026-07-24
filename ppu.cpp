@@ -4,6 +4,49 @@
 using namespace std;
 
 
+
+
+uint8_t ppu::read_nt(int index){
+
+    uint8_t base_nt_addr = ppuctrl & 0b00000011;
+    
+    if(bus->mainbus->cart->mirroring){
+        //horizontal mirroring
+
+        switch(base_nt_addr){
+            case 0:
+                return read(0x2000 + index);
+            case 1:
+                return read(0x2400 + index);
+            case 2: //0x2800
+                return read(0x2000 + index);
+            
+            case 3: //0x2c00
+                return read(0x2400 + index);
+
+        }
+
+    }
+
+    else{
+        //vertical mirroring
+        switch(base_nt_addr){
+            case 0:
+                return read(0x2000 + index);
+            case 1: // 0x2400
+                return read(0x2000 + index);
+            case 2: //0x2800
+                return read(0x2400 + index);
+            
+            case 3: //0x2c00
+                return read(0x2400 + index);
+
+        }
+
+
+    }
+}
+
 void ppu::clock(){
 
     //idle cycle
@@ -19,7 +62,12 @@ void ppu::clock(){
             int row = scanline/8;
             int col = dot/8;
 
+            uint8_t tileno = read_nt((32*row + col));
             
+
+            
+
+
         }
 
         
