@@ -2,7 +2,7 @@
 #define PPU_H
 
 #include <cstdint>
-
+#include "ppubus.h"
 #include <string>
 
 class ppu {
@@ -31,8 +31,8 @@ class ppu {
         uint8_t wreg;
 
         //2 shift registers
-        uint16_t shft_reg_1;
-        uint16_t shft_reg_2;
+        uint16_t shft_reg_hi;
+        uint16_t shft_reg_lo;
 
         //Rendering state variables
         int scanline;
@@ -75,6 +75,9 @@ class ppu {
         }
 
         uint8_t read_nt(int);
+
+        
+        uint16_t read_pt(int);
     
 };
 

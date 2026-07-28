@@ -154,56 +154,58 @@ cpu::cpu(){
 	};
 }
 
-
 //----------FLAGS (STATUS REGISTER) SETTER and GETTER
-void cpu::setFlag(FLAGSTAT flag, bool b){
-	//set the flag
-	if(b){
-		status |= flag; //set the flag
-	}
+void cpu::setFlag(FLAGSTAT flag, bool b)
+{
+    // set the flag
+    if (b)
+    {
+        status |= flag; // set the flag
+    }
 
-	//clear the flag
-	else{
-        
-		status &= ~flag;
+    // clear the flag
+    else
+    {
 
-	}
+        status &= ~flag;
+    }
 }
 
-uint8_t cpu::getFlag(FLAGSTAT flag){
-	//return 1 if set, 0 if not set
-	return (status & flag) ? 1:0;
+uint8_t cpu::getFlag(FLAGSTAT flag)
+{
+    // return 1 if set, 0 if not set
+    return (status & flag) ? 1 : 0;
 }
 //---------------------------------------------------
-
-
-
 
 /**
  * ---------------addrmode functions--------------------
  * It is important that these functions only operate on calculation of effective addresses
  * and nothing else. They should only set the addr_main variable. They should never read/write to an address
- * unless that address contains bytes for the effective address. 
+ * unless that address contains bytes for the effective address.
  */
 
-//IMM
-uint8_t cpu::IMM(){
-	//the next byte after opcode is the 8 bit operand.
-	addr_main = pc; 
+// IMM
+uint8_t cpu::IMM()
+{
+    // the next byte after opcode is the 8 bit operand.
+    addr_main = pc;
     pc++;
-	
-	return pc;
+
+    return pc;
 }
 
-//REL (8 bit signed offset from current PC)
-uint8_t cpu::REL(){
-    //the next byte after opcode is the 8 bit signed offset
+// REL (8 bit signed offset from current PC)
+uint8_t cpu::REL()
+{
+    // the next byte after opcode is the 8 bit signed offset
 
     int offset = read(pc);
     pc++;
     addr_main = pc + offset;
 
-    if(((pc ^ addr_main) & 0xff00)){
+    if (((pc ^ addr_main) & 0xff00))
+    {
 
         page_crossed = 1;
     }
@@ -211,201 +213,202 @@ uint8_t cpu::REL(){
     return offset;
 }
 
-//ZP0
-uint8_t cpu::ZP0(){
-	//Read from the 0 page
-	uint8_t addr = read(pc);
-	pc++;
-	addr_main = addr;
-    return 0;
-}
-
-//ZPX ($00, X)
-uint8_t cpu::ZPX(){
-	//Effective address calculation
-	uint8_t addr = ((read(pc) + xreg) % 256);
-	pc++;
-
-	// addr_main = 7 >> addr; no need to shift upper bytes will be 0 anyway. 
+// ZP0
+uint8_t cpu::ZP0()
+{
+    // Read from the 0 page
+    uint8_t addr = read(pc);
+    pc++;
     addr_main = addr;
     return 0;
 }
 
-//ZPY ($00, Y)
-uint8_t cpu::ZPY(){
-	//Effective address calculation
-	uint8_t addr = ((read(pc) + yreg) % 256);
-	pc++;
-	
+// ZPX ($00, X)
+uint8_t cpu::ZPX()
+{
+    // Effective address calculation
+    uint8_t addr = ((read(pc) + xreg) % 256);
+    pc++;
+
+    // addr_main = 7 >> addr; no need to shift upper bytes will be 0 anyway.
     addr_main = addr;
     return 0;
 }
 
-//ABS $0000
-uint8_t cpu::ABS(){
-	//Get the low byte of the address
-	uint8_t lowByte = read(pc);
-	pc++;
-	//Get the hight byte
-	uint8_t highByte = read(pc);
-	pc++;
+// ZPY ($00, Y)
+uint8_t cpu::ZPY()
+{
+    // Effective address calculation
+    uint8_t addr = ((read(pc) + yreg) % 256);
+    pc++;
 
-	//effective address
-	uint16_t addr = (lowByte + (highByte * 256));
-
-	addr_main = addr;
+    addr_main = addr;
     return 0;
 }
 
-//ABX ($0000, X)
-uint8_t cpu::ABX(){
-	//low byte
-	uint8_t lowByte = read(pc);
-	pc++;
-	//high byte
-	uint8_t highByte = read(pc);
-	pc++;
+// ABS $0000
+uint8_t cpu::ABS()
+{
+    // Get the low byte of the address
+    uint8_t lowByte = read(pc);
+    pc++;
+    // Get the hight byte
+    uint8_t highByte = read(pc);
+    pc++;
 
+    // effective address
+    uint16_t addr = (lowByte + (highByte * 256));
 
-	//effective address
-	uint16_t addr = (((lowByte + (highByte * 256)) + xreg) & 0xFFFF);
-
-
-
-
-    //Check for page crossing 
-    if(!((highByte * 256) == (addr & 0xFF00) )){
-
-
-        //all opcodes that will be effected by a page cross (cycle + 1)
-        switch(opcode){
-            case 0x7d:
-            case 0x3d:
-            case 0xdd:
-            case 0x5d:
-            case 0xbd:
-            case 0xbc:
-            case 0x1d:
-            case 0xfd:
-                page_crossed = 1;
-                break;
-
-        }
-    }
-
-	addr_main = addr; // ONLY NEED TO RETURN THE ADDRESS NOT READ THE DATA.
-	return 0;
+    addr_main = addr;
+    return 0;
 }
 
+// ABX ($0000, X)
+uint8_t cpu::ABX()
+{
+    // low byte
+    uint8_t lowByte = read(pc);
+    pc++;
+    // high byte
+    uint8_t highByte = read(pc);
+    pc++;
 
-//ABY ($0000, Y)
-uint8_t cpu::ABY(){
-	//low byte
-	uint8_t lowByte = read(pc);
-	pc++;
-	//high byte
-	uint8_t highByte = read(pc);
-	pc++;
+    // effective address
+    uint16_t addr = (((lowByte + (highByte * 256)) + xreg) & 0xFFFF);
 
-	//effective address
-	uint16_t addr = (((lowByte + (highByte * 256)) + yreg) & 0xFFFF);
-        //Check for page crossing 
-    if(!((highByte * 256) == (addr & 0xFF00) )){
+    // Check for page crossing
+    if (!((highByte * 256) == (addr & 0xFF00)))
+    {
 
-
-        //all opcodes that will be effected by a page cross (cycle + 1)
-        switch(opcode){
-            case 0x79:
-            case 0x39:
-            case 0xd9:
-            case 0x59:
-            case 0xb9:
-            case 0xbe:
-            case 0x19:
-            case 0xf9:
-                page_crossed = 1;
-                break;
-
+        // all opcodes that will be effected by a page cross (cycle + 1)
+        switch (opcode)
+        {
+        case 0x7d:
+        case 0x3d:
+        case 0xdd:
+        case 0x5d:
+        case 0xbd:
+        case 0xbc:
+        case 0x1d:
+        case 0xfd:
+            page_crossed = 1;
+            break;
         }
     }
 
-	addr_main = addr;
-	return 0;
+    addr_main = addr; // ONLY NEED TO RETURN THE ADDRESS NOT READ THE DATA.
+    return 0;
+}
+
+// ABY ($0000, Y)
+uint8_t cpu::ABY()
+{
+    // low byte
+    uint8_t lowByte = read(pc);
+    pc++;
+    // high byte
+    uint8_t highByte = read(pc);
+    pc++;
+
+    // effective address
+    uint16_t addr = (((lowByte + (highByte * 256)) + yreg) & 0xFFFF);
+    // Check for page crossing
+    if (!((highByte * 256) == (addr & 0xFF00)))
+    {
+
+        // all opcodes that will be effected by a page cross (cycle + 1)
+        switch (opcode)
+        {
+        case 0x79:
+        case 0x39:
+        case 0xd9:
+        case 0x59:
+        case 0xb9:
+        case 0xbe:
+        case 0x19:
+        case 0xf9:
+            page_crossed = 1;
+            break;
+        }
+    }
+
+    addr_main = addr;
+    return 0;
 }
 
 //
 
-//INDEXED INDIRECT ($00, X)
-//Peek(Peek((arg + X)%256) + Peek((arg+X + 1) % 256) * 256)
-uint8_t cpu::IZX(){
-	uint8_t arg = read(pc);
-	pc++;
+// INDEXED INDIRECT ($00, X)
+// Peek(Peek((arg + X)%256) + Peek((arg+X + 1) % 256) * 256)
+uint8_t cpu::IZX()
+{
+    uint8_t arg = read(pc);
+    pc++;
 
-	uint8_t lowByte = read((arg + xreg) % 256);
-	uint16_t highByte = read(((arg + xreg + 1) % 256)) * 256;
+    uint8_t lowByte = read((arg + xreg) % 256);
+    uint16_t highByte = read(((arg + xreg + 1) % 256)) * 256;
 
-	//Effective address
-	uint16_t addr = lowByte + highByte;
+    // Effective address
+    uint16_t addr = lowByte + highByte;
 
-	addr_main = addr;
-
-	return 0;
-
-
-}
-
-//INDIRECT INDEXED ($00), Y
-//PEEK(PEEK(arg) + PEEK((arg+1) % 256) * 256 + Y)
-uint8_t cpu::IZY(){
-	uint8_t arg = read(pc);
-	pc++;
-	uint8_t lowByte = read(arg);
-	uint16_t highByte = read((arg + 1) % 256) * 256;
-
-	//effective address
-	uint16_t addr = lowByte + highByte + yreg;
-
-    //check for page crossing
-    if(!(highByte * 256 == (addr & 0xFF00))){
-          //all opcodes that will be effected by a page cross (cycle + 1)
-        switch(opcode){
-            case 0x71:
-            case 0x31:
-            case 0xd1:
-            case 0x51:
-            case 0xb1:
-            case 0x11:
-            case 0xf1:
-                page_crossed = 1;
-                break;
-
-        }
-        
-    }
-
-	addr_main = addr;
-	return 0;
-}
-
-
-uint8_t cpu::IMP(){
-
-    switch(opcode){
-        
-        case 0x4a:
-        case 0x2a:
-        case 0x6a:
-        case 0x0a:
-            use_acc = 1;
-            break;
-
-    }
-
+    addr_main = addr;
 
     return 0;
 }
 
-uint8_t cpu::IND(){
+// INDIRECT INDEXED ($00), Y
+// PEEK(PEEK(arg) + PEEK((arg+1) % 256) * 256 + Y)
+uint8_t cpu::IZY()
+{
+    uint8_t arg = read(pc);
+    pc++;
+    uint8_t lowByte = read(arg);
+    uint16_t highByte = read((arg + 1) % 256) * 256;
+
+    // effective address
+    uint16_t addr = lowByte + highByte + yreg;
+
+    // check for page crossing
+    if (!(highByte * 256 == (addr & 0xFF00)))
+    {
+        // all opcodes that will be effected by a page cross (cycle + 1)
+        switch (opcode)
+        {
+        case 0x71:
+        case 0x31:
+        case 0xd1:
+        case 0x51:
+        case 0xb1:
+        case 0x11:
+        case 0xf1:
+            page_crossed = 1;
+            break;
+        }
+    }
+
+    addr_main = addr;
+    return 0;
+}
+
+uint8_t cpu::IMP()
+{
+
+    switch (opcode)
+    {
+
+    case 0x4a:
+    case 0x2a:
+    case 0x6a:
+    case 0x0a:
+        use_acc = 1;
+        break;
+    }
+
+    return 0;
+}
+
+uint8_t cpu::IND()
+{
     uint8_t lowbyte = read(pc);
     pc++;
     uint16_t hibyte = read(pc);
@@ -414,78 +417,74 @@ uint8_t cpu::IND(){
     uint16_t addr = (hibyte << 8) + lowbyte;
 
     lowbyte = read(addr);
-    hibyte = read(((addr+1) & 0x00FF) | (addr & 0xFF00)); //6502's JMP INDIRECT BUG. (PAGE CROSSING CANNOT HAPPEN)
+    hibyte = read(((addr + 1) & 0x00FF) | (addr & 0xFF00)); // 6502's JMP INDIRECT BUG. (PAGE CROSSING CANNOT HAPPEN)
 
     addr_main = (hibyte << 8) + lowbyte;
 
     return 0;
 }
 
-
-
 //------------------------Basic Instructions-----------------------------------
 
-//Add with carry
-uint8_t cpu::ADC(){
+// Add with carry
+uint8_t cpu::ADC()
+{
 
     fetched = read(addr_main);
-	int result = acc + fetched + getFlag(C);
+    int result = acc + fetched + getFlag(C);
 
+    setFlag(C, (result > 0xff));
+    setFlag(Z, ((result & 0xff) == 0));
+    // If the result's sign is different from both A's and memory's, signed overflow (or underflow) occurred.
+    setFlag(V, (bool)((result ^ acc) & (result ^ fetched) & 0x80));
+    setFlag(N, (bool)(result & 0x80));
+    acc = result & 0xff; // accumulator can only have the lower 8 bits
 
-
-	setFlag(C, (result > 0xff));
-	setFlag(Z, ((result & 0xff) == 0));
-	//If the result's sign is different from both A's and memory's, signed overflow (or underflow) occurred.
-	setFlag(V, (bool)((result ^ acc) & (result ^ fetched ) & 0x80));
-	setFlag(N, (bool)(result & 0x80));
-	acc = result & 0xff; // accumulator can only have the lower 8 bits
-
-    if(page_crossed){
+    if (page_crossed)
+    {
         cycle += 1;
         page_crossed = 0;
     }
 
-
-	return acc;
-
+    return acc;
 }
 
-//Bitwise AND
-uint8_t cpu::AND(){
+// Bitwise AND
+uint8_t cpu::AND()
+{
     fetched = read(addr_main);
     acc = acc & fetched;
 
     setFlag(Z, (acc == 0));
     setFlag(N, (bool)(acc & 0x80));
 
-
-    if(page_crossed){
+    if (page_crossed)
+    {
         cycle += 1;
         page_crossed = 0;
     }
 
-
     return acc;
-
-
 }
 
-//Arithmetic shift left (by 1)   C <- [76543210] <- 0
-uint8_t cpu::ASL(){
+// Arithmetic shift left (by 1)   C <- [76543210] <- 0
+uint8_t cpu::ASL()
+{
 
-    //operating on accumulator?
-    if(use_acc){
+    // operating on accumulator?
+    if (use_acc)
+    {
         setFlag(C, (bool)(acc >> 7 & 0x01));
         acc = acc << 1;
         setFlag(Z, acc == 0x00);
         setFlag(N, (bool)(acc & 0x80));
 
         use_acc = 0;
-
     }
 
-    //operating on memory address?
-    else{
+    // operating on memory address?
+    else
+    {
 
         fetched = read(addr_main);
         setFlag(C, (bool)(fetched >> 7 & 0x01));
@@ -499,13 +498,15 @@ uint8_t cpu::ASL(){
     return fetched;
 }
 
-
-//Branch if carry clear (BCC)
-uint8_t cpu::BCC(){
-    if(!(getFlag(C))){
+// Branch if carry clear (BCC)
+uint8_t cpu::BCC()
+{
+    if (!(getFlag(C)))
+    {
         pc = addr_main;
         cycle += 1;
-        if(page_crossed){
+        if (page_crossed)
+        {
             cycle += 1;
             page_crossed = 0;
         }
@@ -514,216 +515,254 @@ uint8_t cpu::BCC(){
     return 0;
 }
 
-
-
 // BCS: Branch if carry flag is set
-uint8_t cpu::BCS(){ 
-    if((getFlag(C))){
+uint8_t cpu::BCS()
+{
+    if ((getFlag(C)))
+    {
         pc = addr_main;
         cycle += 1;
-        if(page_crossed){
+        if (page_crossed)
+        {
             cycle += 1;
             page_crossed = 0;
         }
     }
 
     return 0;
- }
+}
 
 // BEQ: Branch if zero flag is set (values equal)
-uint8_t cpu::BEQ(){ 
-    if((getFlag(Z))){
+uint8_t cpu::BEQ()
+{
+    if ((getFlag(Z)))
+    {
         pc = addr_main;
         cycle += 1;
-        if(page_crossed){
+        if (page_crossed)
+        {
             cycle += 1;
             page_crossed = 0;
         }
     }
 
     return 0;
-
- }
+}
 
 // BIT: Test bits in memory against accumulator
-uint8_t cpu::BIT(){ 
-    
+uint8_t cpu::BIT()
+{
+
     fetched = read(addr_main);
     uint8_t result = acc & fetched;
     setFlag(Z, result == 0);
     setFlag(V, (bool)(fetched & 0b01000000));
     setFlag(N, (bool)(fetched & 0x80));
-    return 0; }
+    return 0;
+}
 
 // BMI: Branch if negative flag is set (result minus)
-uint8_t cpu::BMI(){ 
-    if((getFlag(N))){
+uint8_t cpu::BMI()
+{
+    if ((getFlag(N)))
+    {
         pc = addr_main;
         cycle += 1;
 
-        if(page_crossed){
+        if (page_crossed)
+        {
             cycle += 1;
             page_crossed = 0;
         }
-
     }
 
     return 0;
-     }
+}
 
 // BNE: Branch if zero flag is clear (values not equal)
-uint8_t cpu::BNE(){ 
-    if(!(getFlag(Z))){
+uint8_t cpu::BNE()
+{
+    if (!(getFlag(Z)))
+    {
         pc = addr_main;
         cycle += 1;
-        if(page_crossed){
+        if (page_crossed)
+        {
             cycle += 1;
             page_crossed = 0;
         }
     }
 
     return 0;
- }
+}
 
 // BPL: Branch if negative flag is clear (result plus)
-uint8_t cpu::BPL(){ 
-    if(!(getFlag(N))){
+uint8_t cpu::BPL()
+{
+    if (!(getFlag(N)))
+    {
         pc = addr_main;
         cycle += 1;
-        if(page_crossed){
+        if (page_crossed)
+        {
             cycle += 1;
             page_crossed = 0;
         }
     }
 
     return 0;
- }
+}
 
 // BRK: Force software interrupt (IRQ)
-uint8_t cpu::BRK(){ 
+uint8_t cpu::BRK()
+{
     pc++; // skip the extra byte that BRK operates with $00
     irq();
 
     return 0;
- }
+}
 
 // BVC: Branch if overflow flag is clear
-uint8_t cpu::BVC(){ 
-    if(!(getFlag(V))){
+uint8_t cpu::BVC()
+{
+    if (!(getFlag(V)))
+    {
         pc = addr_main;
         cycle += 1;
-        if(page_crossed){
+        if (page_crossed)
+        {
             cycle += 1;
             page_crossed = 0;
         }
     }
 
     return 0;
- }
+}
 
 // BVS: Branch if overflow flag is set
-uint8_t cpu::BVS(){ 
-    if((getFlag(V))){
+uint8_t cpu::BVS()
+{
+    if ((getFlag(V)))
+    {
         pc = addr_main;
         cycle += 1;
-        if(page_crossed){
+        if (page_crossed)
+        {
             cycle += 1;
             page_crossed = 0;
         }
     }
 
     return 0;
- }
+}
 
 // CLC: Clear carry flag
-uint8_t cpu::CLC(){ 
-    
+uint8_t cpu::CLC()
+{
+
     setFlag(C, 0);
-    return 0; 
+    return 0;
 }
 
 // CLD: Clear decimal flag
-uint8_t cpu::CLD(){ 
-    
+uint8_t cpu::CLD()
+{
+
     setFlag(D, 0);
-    return 0; 
+    return 0;
 }
 
 // CLI: Clear interrupt disable flag
-uint8_t cpu::CLI(){ 
+uint8_t cpu::CLI()
+{
 
     setFlag(I, 0);
-    
-    return 0; }
+
+    return 0;
+}
 
 // CLV: Clear overflow flag
-uint8_t cpu::CLV(){ 
-    
+uint8_t cpu::CLV()
+{
+
     setFlag(V, 0);
-    return 0; }
+    return 0;
+}
 
 // CMP: Compare accumulator with memory
-uint8_t cpu::CMP(){ 
+uint8_t cpu::CMP()
+{
     fetched = read(addr_main);
     setFlag(C, (acc >= fetched));
     setFlag(Z, (acc == fetched));
     setFlag(N, (bool)((acc - fetched) & 0x80));
 
-    return 0; }
+    return 0;
+}
 
 // CPX: Compare X register with memory
-uint8_t cpu::CPX(){ 
+uint8_t cpu::CPX()
+{
     fetched = read(addr_main);
     setFlag(C, (xreg >= fetched));
     setFlag(Z, (xreg == fetched));
     setFlag(N, (bool)((xreg - fetched) & 0x80));
 
-    return 0; }
+    return 0;
+}
 
 // CPY: Compare Y register with memory
-uint8_t cpu::CPY(){ 
-    
+uint8_t cpu::CPY()
+{
+
     fetched = read(addr_main);
     setFlag(C, (yreg >= fetched));
     setFlag(Z, (yreg == fetched));
     setFlag(N, (bool)((yreg - fetched) & 0x80));
 
-    return 0; }
+    return 0;
+}
 
 // DEC: Decrement memory value by 1
-uint8_t cpu::DEC(){ 
-    
+uint8_t cpu::DEC()
+{
+
     fetched = read(addr_main);
     fetched -= 1;
     write(addr_main, fetched);
     setFlag(Z, fetched == 0);
     setFlag(N, (bool)(fetched & 0x80));
 
-    
-    return 0; }
+    return 0;
+}
 
 // DEX: Decrement X register by 1
-uint8_t cpu::DEX(){ 
-    
+uint8_t cpu::DEX()
+{
+
     xreg -= 1;
 
     setFlag(Z, xreg == 0);
     setFlag(N, (bool)(xreg & 0x80));
-    
-    return 0; }
+
+    return 0;
+}
 
 // DEY: Decrement Y register by 1
-uint8_t cpu::DEY(){    
+uint8_t cpu::DEY()
+{
     yreg -= 1;
 
     setFlag(Z, yreg == 0);
     setFlag(N, (bool)(yreg & 0x80));
-    
-    return 0; }
+
+    return 0;
+}
 
 // EOR: Bitwise exclusive OR memory with accumulator
-uint8_t cpu::EOR(){ 
-    
+uint8_t cpu::EOR()
+{
+
     fetched = read(addr_main);
 
     acc = acc ^ fetched;
@@ -731,134 +770,141 @@ uint8_t cpu::EOR(){
     setFlag(Z, acc == 0);
     setFlag(N, (bool)(acc & 0x80));
 
-    if(page_crossed){
+    if (page_crossed)
+    {
         cycle += 1;
         page_crossed = 0;
     }
-    
-    return 0; }
+
+    return 0;
+}
 
 // INC: Increment memory value by 1
-uint8_t cpu::INC(){ 
+uint8_t cpu::INC()
+{
     fetched = read(addr_main);
     fetched += 1;
     write(addr_main, fetched);
     setFlag(Z, fetched == 0);
     setFlag(N, (bool)(fetched & 0x80));
 
-    
-    return 0; }
-
+    return 0;
+}
 
 // INX: Increment X register by 1
-uint8_t cpu::INX(){    
+uint8_t cpu::INX()
+{
     xreg += 1;
 
     setFlag(Z, xreg == 0);
     setFlag(N, (bool)(xreg & 0x80));
-    
-    return 0; }
+
+    return 0;
+}
 
 // INY: Increment Y register by 1
-uint8_t cpu::INY(){ 
+uint8_t cpu::INY()
+{
     yreg += 1;
 
     setFlag(Z, yreg == 0);
     setFlag(N, (bool)(yreg & 0x80));
-    
+
     return 0;
 }
 
 // JMP: Jump to new program counter location
-uint8_t cpu::JMP(){ 
-    
+uint8_t cpu::JMP()
+{
+
     pc = addr_main;
-    return 0; 
+    return 0;
 }
 
 // JSR: Jump to subroutine, pushing return address to stack
-uint8_t cpu::JSR(){ 
-    
-    push(((pc-1) & 0xff00) >> 8); //push high byte
-    push(pc-1); //push low byte
+uint8_t cpu::JSR()
+{
+
+    push(((pc - 1) & 0xff00) >> 8); // push high byte
+    push(pc - 1);                   // push low byte
 
     pc = addr_main; // set new PC
-    return addr_main; 
-
+    return addr_main;
 }
 
 // LDA: Load memory value into accumulator
-uint8_t cpu::LDA(){ 
+uint8_t cpu::LDA()
+{
     fetched = read(addr_main);
     acc = fetched;
 
     setFlag(Z, fetched == 0);
     setFlag(N, (bool)(fetched & 0x80));
 
-
-    if(page_crossed){
+    if (page_crossed)
+    {
         cycle += 1;
         page_crossed = 0;
     }
 
-    
-    return 0; 
+    return 0;
 }
 
 // LDX: Load memory value into X register
-uint8_t cpu::LDX(){ 
-    
+uint8_t cpu::LDX()
+{
+
     fetched = read(addr_main);
     xreg = fetched;
 
     setFlag(Z, fetched == 0);
     setFlag(N, (bool)(fetched & 0x80));
 
-
-    if(page_crossed){
+    if (page_crossed)
+    {
         cycle += 1;
         page_crossed = 0;
     }
 
-    
-    return 0;  
-
+    return 0;
 }
 
 // LDY: Load memory value into Y register
-uint8_t cpu::LDY(){ 
-    
+uint8_t cpu::LDY()
+{
+
     fetched = read(addr_main);
     yreg = fetched;
 
     setFlag(Z, fetched == 0);
     setFlag(N, (bool)(fetched & 0x80));
 
-
-    if(page_crossed){
+    if (page_crossed)
+    {
         cycle += 1;
         page_crossed = 0;
     }
 
-    
-    return 0; 
+    return 0;
 }
 
 // LSR: Logical shift right by 1 bit
-uint8_t cpu::LSR(){ 
-    //operating on accumulator?
-    if(use_acc){
+uint8_t cpu::LSR()
+{
+    // operating on accumulator?
+    if (use_acc)
+    {
         setFlag(C, (bool)(acc & 0x01));
         acc = acc >> 1;
         setFlag(Z, acc == 0x00);
         setFlag(N, 0);
 
         use_acc = 0;
-
     }
 
-    //operating on memory address?
-    else{
+    // operating on memory address?
+    else
+    {
 
         fetched = read(addr_main);
         setFlag(C, (bool)(fetched & 0x01));
@@ -866,89 +912,90 @@ uint8_t cpu::LSR(){
         setFlag(Z, fetched == 0x00);
         setFlag(N, 0);
 
-    
-
         write(addr_main, fetched);
     }
 
     return fetched;
-
- }
+}
 
 // NOP: No operation, waste cycles
-uint8_t cpu::NOP(){ return 0; }
+uint8_t cpu::NOP() { return 0; }
 
 // ORA: Bitwise OR memory with accumulator
-uint8_t cpu::ORA(){
-    
+uint8_t cpu::ORA()
+{
+
     fetched = read(addr_main);
     acc = acc | fetched;
 
     setFlag(Z, acc == 0);
     setFlag(N, (bool)(acc & 0x80));
-   
 
-    if(page_crossed){
+    if (page_crossed)
+    {
         cycle += 1;
         page_crossed = 0;
     }
 
-    return acc; 
+    return acc;
 }
 
 // PHA: Push accumulator to stack
-uint8_t cpu::PHA(){
+uint8_t cpu::PHA()
+{
 
     push(acc);
     return acc;
-
- }
+}
 
 // PHP: Push processor status flags to stack
-uint8_t cpu::PHP(){ 
+uint8_t cpu::PHP()
+{
     uint8_t flags = status | 0b00110000;
     push(flags);
 
     return 0;
-
- }
+}
 
 // PLA: Pull accumulator from stack
-uint8_t cpu::PLA(){ 
-    
+uint8_t cpu::PLA()
+{
+
     acc = pop();
     setFlag(Z, acc == 0);
     setFlag(N, (bool)(acc & 0x80));
 
     return acc;
-
 }
 
 // PLP: Pull processor status flags from stack
-uint8_t cpu::PLP(){ 
-    status = (pop() & ~(B|U)) | (status & (B|U)); // TODO: I should not be changed immediately fix this when IRQ is done
+uint8_t cpu::PLP()
+{
+    status = (pop() & ~(B | U)) | (status & (B | U)); // TODO: I should not be changed immediately fix this when IRQ is done
 
     return 0;
- }
+}
 
 // ROL: Rotate left through carry flag
-uint8_t cpu::ROL(){ 
+uint8_t cpu::ROL()
+{
 
-    //operating on accumulator?
-    if(use_acc){
-        
+    // operating on accumulator?
+    if (use_acc)
+    {
+
         int tempC = getFlag(C);
         setFlag(C, (bool)(acc >> 7 & 0x01));
-        acc = (acc << 1) | tempC ;
+        acc = (acc << 1) | tempC;
         setFlag(Z, acc == 0x00);
         setFlag(N, (bool)(acc & 0x80));
 
         use_acc = 0;
-
     }
 
-    //operating on memory address?
-    else{
+    // operating on memory address?
+    else
+    {
 
         fetched = read(addr_main);
 
@@ -962,27 +1009,28 @@ uint8_t cpu::ROL(){
     }
 
     return fetched;
-
- }
+}
 
 // ROR: Rotate right through carry flag
-uint8_t cpu::ROR(){ 
-    
-    //operating on accumulator?
-    if(use_acc){
-        
+uint8_t cpu::ROR()
+{
+
+    // operating on accumulator?
+    if (use_acc)
+    {
+
         int tempC = getFlag(C);
         setFlag(C, (bool)(acc & 0x01));
-        acc = (acc >> 1) | tempC << 7 ;
+        acc = (acc >> 1) | tempC << 7;
         setFlag(Z, acc == 0x00);
         setFlag(N, (bool)(acc & 0x80));
 
         use_acc = 0;
-
     }
 
-    //operating on memory address?
-    else{
+    // operating on memory address?
+    else
+    {
 
         fetched = read(addr_main);
 
@@ -996,162 +1044,158 @@ uint8_t cpu::ROR(){
     }
 
     return fetched;
-
 }
 
 // RTI: Return from interrupt, pulling flags and PC from stack
-uint8_t cpu::RTI(){ 
-    status = (pop() & ~(B|U)) | (status & (B|U));
+uint8_t cpu::RTI()
+{
+    status = (pop() & ~(B | U)) | (status & (B | U));
     uint8_t lo = pop();
     uint8_t hi = pop();
 
     pc = (hi << 8) | lo;
 
     return 0;
- }
+}
 
 // RTS: Return from subroutine, pulling PC from stack
-uint8_t cpu::RTS(){ 
+uint8_t cpu::RTS()
+{
     uint8_t lo = pop();
     uint8_t hi = pop();
 
     pc = ((hi << 8) | lo) + 1;
 
     return 0;
- }
+}
 
 // SBC: Subtract memory and inverted carry from accumulator
-//is used after SEC (set C = 1). So we do acc + 1's complement + 1 = two's complement subtraction. 
-uint8_t cpu::SBC(){ 
+// is used after SEC (set C = 1). So we do acc + 1's complement + 1 = two's complement subtraction.
+uint8_t cpu::SBC()
+{
 
     fetched = read(addr_main);
     int val = acc + ~fetched + (getFlag(C));
 
     setFlag(C, (bool)(!(val < 0x00)));
     setFlag(Z, val == 0);
-    setFlag(V, (bool)((val ^ acc)&(val ^ ~fetched) & 0x80));
+    setFlag(V, (bool)((val ^ acc) & (val ^ ~fetched) & 0x80));
     setFlag(N, (bool)(val & 0x80));
 
     acc = val;
 
-    if(page_crossed){
+    if (page_crossed)
+    {
         cycle += 1;
         page_crossed = 0;
     }
 
     return 0;
-
- }
+}
 
 // SEC: Set carry flag
-uint8_t cpu::SEC(){ 
-    
+uint8_t cpu::SEC()
+{
+
     setFlag(C, 1);
     return 0;
 }
 
 // SED: Set decimal flag
-uint8_t cpu::SED(){ 
+uint8_t cpu::SED()
+{
     setFlag(D, 1);
     return 0;
- }
+}
 
 // SEI: Set interrupt disable flag
-uint8_t cpu::SEI(){ 
+uint8_t cpu::SEI()
+{
     setFlag(I, 1);
-    return 0; //TODO: this needs to be delayed one instruction
- }
+    return 0; // TODO: this needs to be delayed one instruction
+}
 
 // STA: Store accumulator value into memory
-uint8_t cpu::STA(){ 
-    
+uint8_t cpu::STA()
+{
+
     write(addr_main, acc);
     return 0;
-
- }
+}
 
 // STX: Store X register value into memory
-uint8_t cpu::STX(){ 
-    
-    write (addr_main, xreg);
+uint8_t cpu::STX()
+{
+
+    write(addr_main, xreg);
     return 0;
- }
+}
 
 // STY: Store Y register value into memory
-uint8_t cpu::STY(){ 
+uint8_t cpu::STY()
+{
     write(addr_main, yreg);
-    return 0; }
+    return 0;
+}
 
 // TAX: Transfer accumulator to X register
-uint8_t cpu::TAX(){ 
+uint8_t cpu::TAX()
+{
     xreg = acc;
 
     setFlag(Z, acc == 0);
     setFlag(N, (bool)(xreg & 0x80));
     return 0;
- }
+}
 
 // TAY: Transfer accumulator to Y register
-uint8_t cpu::TAY(){ 
+uint8_t cpu::TAY()
+{
     yreg = acc;
 
     setFlag(Z, acc == 0);
     setFlag(N, (bool)(yreg & 0x80));
-    
-    return 0; }
+
+    return 0;
+}
 
 // TSX: Transfer stack pointer to X register
-uint8_t cpu::TSX(){ 
+uint8_t cpu::TSX()
+{
     xreg = stkp;
     setFlag(Z, stkp == 0);
     setFlag(N, (bool)(xreg & 0x80));
 
     return 0;
- }
+}
 
 // TXA: Transfer X register to accumulator
-uint8_t cpu::TXA(){ 
-    
+uint8_t cpu::TXA()
+{
+
     acc = xreg;
     setFlag(Z, acc == 0);
     setFlag(N, (bool)(acc & 0x80));
-    
-    return 0; }
 
-// TXS: Transfer X register to stack pointer
-uint8_t cpu::TXS(){
-    
-    stkp = xreg;
-
-    
-    return 0;
- }
-
-// TYA: Transfer Y register to accumulator
-uint8_t cpu::TYA(){ 
-    
-    acc = yreg;
-    setFlag(Z, acc == 0);
-    setFlag(N, (bool)(acc & 0x80));
-    
     return 0;
 }
 
+// TXS: Transfer X register to stack pointer
+uint8_t cpu::TXS()
+{
 
+    stkp = xreg;
 
+    return 0;
+}
 
+// TYA: Transfer Y register to accumulator
+uint8_t cpu::TYA()
+{
 
+    acc = yreg;
+    setFlag(Z, acc == 0);
+    setFlag(N, (bool)(acc & 0x80));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return 0;
+}
