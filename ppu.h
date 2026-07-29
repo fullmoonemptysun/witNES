@@ -25,9 +25,9 @@ class ppu {
         uint8_t ppuaddr;
         uint8_t ppudata;
         uint8_t oamdma; //actually belongs to cpu
-        uint8_t vreg;
-        uint8_t treg;
-        uint8_t xreg_ppu;
+        uint16_t vreg;
+        uint16_t treg;
+        uint16_t xreg_ppu;
         uint8_t wreg;
 
         //2 shift registers
