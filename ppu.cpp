@@ -47,6 +47,47 @@ uint8_t ppu::read_nt(int index)
         }
     }
 }
+
+uint8_t ppu::read_at(int index)
+{
+
+    uint8_t base_nt_addr = (vreg & 0xc00) >> 10;
+
+    if (bus->mainbus->cart->mirroring)
+    {
+        // horizontal mirroring
+
+        switch (base_nt_addr)
+        {
+        case 0:
+            return read(0x23c0 + index);
+        case 1:
+            return read(0x27c0 + index);
+        case 2: // 0x2800
+            return read(0x23c0 + index);
+
+        case 3: // 0x2c00
+            return read(0x27c0 + index);
+        }
+    }
+
+    else
+    {
+        // vertical mirroring
+        switch (base_nt_addr)
+        {
+        case 0:
+            return read(0x23c0 + index);
+        case 1: // 0x2400
+            return read(0x23c0 + index);
+        case 2: // 0x2800
+            return read(0x27c0 + index);
+
+        case 3: // 0x2c00
+            return read(0x27c0 + index);
+        }
+    }
+}
 uint16_t ppu::read_pt(int tileno)
 {
     // tileno * 16 + vertical pixel offset + plane * 8
@@ -100,6 +141,7 @@ void ppu::clock()
                 vreg = CAST_15(vreg+1);
             }
 
+            //nt fetch
             // get tile no. from nametable
             uint8_t tileno = read_nt(vreg & 0x3ff);
             uint16_t ptdata = read_pt(tileno);
@@ -110,6 +152,34 @@ void ppu::clock()
 
             // debugging
             cout << "0x" << toHex(tileno) << endl;
+
+            //at fetch
+            uint8_t at_byte = read_at((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07);
+            uint8_t val =  ((vreg & 0x001F) & 0x2)  + ((((vreg & 0x1E0) >> 5) & 0x2)>>1);
+            switch (val){
+                case 0: // top-left
+                    attr_reg_hi |= ((at_byte & 0b00000010) >> 1) * 0xFF;
+                    attr_reg_lo |= ((at_byte & 0b00000001)) * 0xFF;
+                    break;
+                case 1:
+                    attr_reg_hi |= ((at_byte & 0b00100000) >> 5) * 0xFF;
+                    attr_reg_lo |= ((at_byte & 0b00010000) >> 4) * 0xFF;
+                    break;
+                case 2:
+                    attr_reg_hi |= ((at_byte & 0b00001000) >> 3) * 0xFF;
+                    attr_reg_lo |= ((at_byte & 0b00000100) >> 2) * 0xFF;
+                    break;
+                case 3:
+                    attr_reg_hi |= ((at_byte & 0b10000000) >> 7) * 0xFF;
+                    attr_reg_lo |= ((at_byte & 0b01000000) >> 6) * 0xFF;
+                    break;
+                default:
+                //debug
+                    cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+            }
+
+
+
 
         }
 
