@@ -125,6 +125,9 @@ void ppu::clock()
     {
         // render current dot first
 
+        //calculate bg pixel
+        uint8_t bgpx = (((shft_reg_hi >> 6) & 0x2) | (shft_reg_lo >> 7)) | (((attr_reg_hi >> 4) & 0x8) | ((attr_reg_lo >> 5) & 0x4));
+
         // if 8 dot boundary, then do mem fetches
         if ((dot % 8 == 0))
         {
