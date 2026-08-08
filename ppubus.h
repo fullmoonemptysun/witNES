@@ -7,41 +7,34 @@
 #include "ppu.h"
 #include "Bus.h"
 
+class PPUBus
+{
 
+public:
+    PPUBus()
+    {
+        witppu = new ppu();
+        witppu->ConnectBus(this);
+    }
 
-class PPUBus{
+    uint8_t read_register(uint16_t addr);
+    void write_register(uint16_t addr, uint8_t data, uint16_t totalCycles);
+    uint8_t read_mem(uint16_t);
+    void write_mem(uint16_t, uint8_t);
 
-    public:
-        PPUBus(){
-            witppu = new ppu();
-            witppu->ConnectBus(this);
-        }
-        
+    void ConnectMainBus(Bus *b)
+    {
+        this->mainbus = b;
+    }
 
-        uint8_t read_register(uint16_t addr);
-        void write_register(uint16_t addr, uint8_t data, uint16_t totalCycles);
-        uint8_t read_mem(uint16_t);
-        void write_mem(uint16_t, uint8_t);
+    ppu *witppu;
+    Bus *mainbus;
 
-        void ConnectMainBus(Bus* b){
-            this->mainbus = b;
-        }
-        
+    array<uint8_t, 2 * 1024> vram; // vram 2 kilobytes
+    array<uint8_t, 16> pallette;   // color pallette
+    array<uint8_t, 64> oam;
 
-        ppu* witppu;
-        Bus* mainbus;
-
-        array<uint8_t, 2 * 1024> vram; //vram 2 kilobytes
-        array<uint8_t, 16> pallette; //color pallette
-        array<uint8_t, 64> oam;
-        
-    
-        uint8_t latch = 0x00; //latch value of the bus (last read/write)
-
-
+    uint8_t latch = 0x00; // latch value of the bus (last read/write)
 };
-
-
-
 
 #endif

@@ -4,6 +4,8 @@
 
 #define CAST_15(x) ((x) & 0x7FFF)
 #define CAST_14(x) ((x) & 0x3fff)
+#define CAST_5(x) ((x) & 0x1F)
+#define CAST_6(x) ((x) & 0x3F)
 
 using namespace std;
 
@@ -124,56 +126,55 @@ void ppu::clock()
     else if ((scanline >= 0 && scanline <= 239) && (1 <= dot && dot <= 256) && (sp_render_enable || bg_render_enable))
     {
         // render current dot first
-        
-        //calculate bgpx
+
+        // calculate bgpx
         int index = xreg_ppu;
-        uint8_t bgpxaddr = (((shft_reg_hi >> (6-index)) & 0x2) | (shft_reg_lo >> (7 - index))) | (((attr_reg_hi >> (4-index)) & 0x8) | ((attr_reg_lo >> (5-index)) & 0x4));
+        uint8_t bgpxaddr = (((shft_reg_hi >> (6 - index)) & 0x2) | (shft_reg_lo >> (7 - index))) | (((attr_reg_hi >> (4 - index)) & 0x8) | ((attr_reg_lo >> (5 - index)) & 0x4));
 
-
-        //calculate sprite pixel
+        // calculate sprite pixel
         uint8_t spxaddr = 0;
-        
 
-        //decide which to render
-        
-        //FOR NOW EITHER BG or EXT. TODO: FIX THIS AFTER SPRITE PART IS DONE.
+        // TODO: Figure out the 5th bit and how it is being added, finish frame buffer filling, start sdl part
+        // decide which to render
+
+        // FOR NOW EITHER BG or EXT. TODO: FIX THIS AFTER SPRITE PART IS DONE.
         uint8_t priority_mux_val = pmux[((bgpxaddr & 0x3) != 0)][0x00][0x00];
 
-        switch(priority_mux_val){
-            case(0):
-                break;
-            case(1):
-                uint8_t curr_px = bus->read_mem(0x3f00 + bgpxaddr);
-                //sdl2 rendering pipeline.
-                break;
-            case(2):
-                break;
+        switch (priority_mux_val)
+        {
+        case (0):
+            break;
+        case (1):
+            uint8_t curr_px_idx = bus->read_mem(0x3f00 + bgpxaddr); // 6 bit
+            // sdl2 rendering pipeline.
+            // grab the rgb from master pallette
+            frame[scanline * 256 + (dot - 1)] = mpallette[CAST_6(curr_px_idx)];
+
+            break;
+        case (2):
+            break;
         }
-
-
-
-
-       
-
 
         // if 8 dot boundary, then do mem fetches
         if ((dot % 8 == 0))
         {
 
-            //inc. hor(v)
+            // inc. hor(v)
             int coarse_x = vreg & 0x1F;
-            //out of nametable boundary horizontally
-            if((coarse_x + 1) >= 32){
+            // out of nametable boundary horizontally
+            if ((coarse_x + 1) >= 32)
+            {
                 vreg = vreg & 0xFFE0;
-                //flip horizontal bit
+                // flip horizontal bit
                 vreg ^= 0x0400; // flip bit 10
             }
-            else{
-                vreg = CAST_15(vreg+1);
+            else
+            {
+                vreg = CAST_15(vreg + 1);
             }
 
-            //nt fetch
-            // get tile no. from nametable
+            // nt fetch
+            //  get tile no. from nametable
             uint8_t tileno = read_nt(vreg & 0x3ff);
             uint16_t ptdata = read_pt(tileno);
 
@@ -184,37 +185,31 @@ void ppu::clock()
             // debugging
             cout << "0x" << toHex(tileno) << endl;
 
-            //at fetch
+            // at fetch
             uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
-            uint8_t val =  ((vreg & 0x001F) & 0x2)  + ((((vreg & 0x1E0) >> 5) & 0x2)>>1);
-            switch (val){
-                case 0: // top-left
-                    attr_reg_hi |= ((at_byte & 0b00000010) >> 1) * 0xFF;
-                    attr_reg_lo |= ((at_byte & 0b00000001)) * 0xFF;
-                    break;
-                case 1:
-                    attr_reg_hi |= ((at_byte & 0b00100000) >> 5) * 0xFF;
-                    attr_reg_lo |= ((at_byte & 0b00010000) >> 4) * 0xFF;
-                    break;
-                case 2:
-                    attr_reg_hi |= ((at_byte & 0b00001000) >> 3) * 0xFF;
-                    attr_reg_lo |= ((at_byte & 0b00000100) >> 2) * 0xFF;
-                    break;
-                case 3:
-                    attr_reg_hi |= ((at_byte & 0b10000000) >> 7) * 0xFF;
-                    attr_reg_lo |= ((at_byte & 0b01000000) >> 6) * 0xFF;
-                    break;
-                default:
-                //debug
-                    cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+            uint8_t val = ((vreg & 0x001F) & 0x2) + ((((vreg & 0x1E0) >> 5) & 0x2) >> 1);
+            switch (val)
+            {
+            case 0: // top-left
+                attr_reg_hi |= ((at_byte & 0b00000010) >> 1) * 0xFF;
+                attr_reg_lo |= ((at_byte & 0b00000001)) * 0xFF;
+                break;
+            case 1:
+                attr_reg_hi |= ((at_byte & 0b00100000) >> 5) * 0xFF;
+                attr_reg_lo |= ((at_byte & 0b00010000) >> 4) * 0xFF;
+                break;
+            case 2:
+                attr_reg_hi |= ((at_byte & 0b00001000) >> 3) * 0xFF;
+                attr_reg_lo |= ((at_byte & 0b00000100) >> 2) * 0xFF;
+                break;
+            case 3:
+                attr_reg_hi |= ((at_byte & 0b10000000) >> 7) * 0xFF;
+                attr_reg_lo |= ((at_byte & 0b01000000) >> 6) * 0xFF;
+                break;
+            default:
+                // debug
+                cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
             }
-
-
-
-
         }
-
-
-
     }
 }
