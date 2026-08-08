@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "ppubus.h"
 #include <string>
+#include <array>
 
 class ppu
 {
@@ -68,6 +69,17 @@ private:
     uint8_t read_nt(int);
     uint8_t read_at(int);
     uint16_t read_pt(int);
+
+    
+
+    //0 for sprite, 1 for bg, 2 for EXT
+    uint8_t pmux[2][2][2] = {
+        {{2, 2}, {0, 0}},
+        {{1, 1}, {0, 1}}
+    };
+
+
+    
 };
 
 #endif

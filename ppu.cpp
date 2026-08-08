@@ -124,9 +124,37 @@ void ppu::clock()
     else if ((scanline >= 0 && scanline <= 239) && (1 <= dot && dot <= 256) && (sp_render_enable || bg_render_enable))
     {
         // render current dot first
+        
+        //calculate bgpx
+        int index = xreg_ppu;
+        uint8_t bgpxaddr = (((shft_reg_hi >> (6-index)) & 0x2) | (shft_reg_lo >> (7 - index))) | (((attr_reg_hi >> (4-index)) & 0x8) | ((attr_reg_lo >> (5-index)) & 0x4));
 
-        //calculate bg pixel
-        uint8_t bgpx = (((shft_reg_hi >> 6) & 0x2) | (shft_reg_lo >> 7)) | (((attr_reg_hi >> 4) & 0x8) | ((attr_reg_lo >> 5) & 0x4));
+
+        //calculate sprite pixel
+        uint8_t spxaddr = 0;
+        
+
+        //decide which to render
+        
+        //FOR NOW EITHER BG or EXT. TODO: FIX THIS AFTER SPRITE PART IS DONE.
+        uint8_t priority_mux_val = pmux[((bgpxaddr & 0x3) != 0)][0x00][0x00];
+
+        switch(priority_mux_val){
+            case(0):
+                break;
+            case(1):
+                uint8_t curr_px = bus->read_mem(0x3f00 + bgpxaddr);
+                //sdl2 rendering pipeline.
+                break;
+            case(2):
+                break;
+        }
+
+
+
+
+       
+
 
         // if 8 dot boundary, then do mem fetches
         if ((dot % 8 == 0))
@@ -157,7 +185,7 @@ void ppu::clock()
             cout << "0x" << toHex(tileno) << endl;
 
             //at fetch
-            uint8_t at_byte = read_at((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07);
+            uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
             uint8_t val =  ((vreg & 0x001F) & 0x2)  + ((((vreg & 0x1E0) >> 5) & 0x2)>>1);
             switch (val){
                 case 0: // top-left

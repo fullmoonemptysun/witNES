@@ -32,6 +32,7 @@ class PPUBus{
         Bus* mainbus;
 
         array<uint8_t, 2 * 1024> vram; //vram 2 kilobytes
+        array<uint8_t, 16> pallette; //color pallette
         array<uint8_t, 64> oam;
         
     

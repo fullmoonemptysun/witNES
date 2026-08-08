@@ -202,9 +202,14 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles){
 //memory operations (PPU <-> MEMORY)
 
 uint8_t PPUBus :: read_mem(uint16_t addr){
-    //vram read
+    //nametable
     if(addr >= 0x2000 && addr <= 0x27ff){
        return vram[addr - 0x2000];
+    }
+
+    //pallette
+    else if(addr >= 0x3f00 && addr <= 0x3f1f){
+        return pallette[addr-0x3f00];
     }
     
 }
@@ -214,6 +219,11 @@ void PPUBus :: write_mem(uint16_t addr, uint8_t data){
     if(addr >= 0x2000 && addr <= 0x27ff){
         vram[addr - 0x2000] = data;
     }
+
+     else if(addr >= 0x3f00 && addr <= 0x3f1f){
+        pallette[addr-0x3f00] = data;
+    }
+    
 }
 
 
