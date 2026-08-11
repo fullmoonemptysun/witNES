@@ -99,19 +99,12 @@ uint16_t ppu::read_pt(int tileno)
     if (pt_base_addr)
     {
         pt_addr |= 0x1000;
-        uint8_t lobyte = bus->read_mem(pt_addr);
-        uint8_t hibyte = bus->read_mem(pt_addr + 8);
-
-        return ((hibyte << 8) + lobyte);
     }
 
-    else
-    {
-        uint8_t lobyte = bus->read_mem(pt_addr);
-        uint8_t hibyte = bus->read_mem(pt_addr + 8);
+    uint8_t lobyte = bus->read_mem(pt_addr);
+    uint8_t hibyte = bus->read_mem(pt_addr + 8);
 
-        return ((hibyte << 8) + lobyte);
-    }
+    return ((hibyte << 8) + lobyte);
 }
 void ppu::clock()
 {
@@ -135,6 +128,7 @@ void ppu::clock()
         uint8_t spxaddr = 0;
 
         // TODO: Figure out the 5th bit and how it is being added, finish frame buffer filling, start sdl part
+        // TODO: Check bg_render_enable and sp_render_enable — treat disabled component as transparent (pixel = 0) before priority mux
         // decide which to render
 
         // FOR NOW EITHER BG or EXT. TODO: FIX THIS AFTER SPRITE PART IS DONE.
@@ -152,6 +146,7 @@ void ppu::clock()
 
             break;
         case (2):
+            frame[scanline * 256 + (dot - 1)] = mpallette[bus->read_mem(0x3f00)]; // EXT color
             break;
         }
 

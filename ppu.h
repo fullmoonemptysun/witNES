@@ -44,7 +44,8 @@ public:
     // NMI polling flag
     bool nmi_pending = false;
 
-    //
+    // TODO: grayscale mode. Not needed for NROM games, maybe implemented in the future
+    bool grayscale = false;
 
     void clock();
 

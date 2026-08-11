@@ -15,6 +15,8 @@ uint8_t PPUBus::read_register(uint16_t addr)
             return latch;
         case 0x2002:
             latch = witppu->ppustatus; // latch fills with the data read.
+            // reading clears the vblank flag
+            witppu->ppustatus &= 0b01111111;
             return witppu->ppustatus;
         case 0x2003:
             return latch;
@@ -50,6 +52,8 @@ uint8_t PPUBus::read_register(uint16_t addr)
             return latch;
         case 0x2004:
             latch = witppu->oamdata; // fill latch w data
+            // TODO: Reads during vertical or forced blanking return the value from OAM at that address.
+
             return witppu->oamdata;
         case 0x2005:
 
@@ -66,7 +70,9 @@ uint8_t PPUBus::read_register(uint16_t addr)
     }
 
     else if (addr == 0x4014)
+
     {
+
         return latch;
     }
 
@@ -105,6 +111,8 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 // every write to ppumask may change the rendering status
                 witppu->bg_render_enable = (bool)(0b00001000 & witppu->ppumask);
                 witppu->sp_render_enable = (bool)(0b00010000 & witppu->ppumask);
+
+                witppu->grayscale = (bool)(0x1 & witppu->ppumask); // grayscale mode (0: off, 1: on)
 
                 latch = witppu->ppumask;
             }
@@ -174,6 +182,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2004:
             witppu->oamdata = data;
             latch = witppu->oamdata;
+            witppu->oamaddr += 1;
             break;
 
         case 0x2005:
@@ -213,9 +222,36 @@ uint8_t PPUBus ::read_mem(uint16_t addr)
         return vram[addr - 0x2000];
     }
 
+    // pattern table
+    else if (addr >= 0x0000 && addr <= 0x1fff)
+    {
+        return mainbus->cart->ppu_read(addr);
+    }
+
+    // pallette mirror
+    else if (addr >= 0x3f20 && addr <= 0x3fff)
+    {
+        return read_mem((addr & 0x1F) + 0x3f00);
+    }
+
     // pallette
     else if (addr >= 0x3f00 && addr <= 0x3f1f)
     {
+        // 0th entry of each palette is mirrored for background and sprites.
+        switch (addr)
+        {
+        case (0x3f10):
+            return pallette[(addr - 0x10) - 0x3f00];
+
+        case (0x3f14):
+            return pallette[(addr - 0x10) - 0x3f00];
+
+        case (0x3f18):
+            return pallette[(addr - 0x10) - 0x3f00];
+
+        case (0x3f1c):
+            return pallette[(addr - 0x10) - 0x3f00];
+        }
         return pallette[addr - 0x3f00];
     }
 }
@@ -230,6 +266,33 @@ void PPUBus ::write_mem(uint16_t addr, uint8_t data)
 
     else if (addr >= 0x3f00 && addr <= 0x3f1f)
     {
-        pallette[addr - 0x3f00] = data;
+        // 0th entry of each palette is mirrored for background and sprites.
+        switch (addr)
+        {
+        case (0x3f10):
+            pallette[(addr - 0x10) - 0x3f00] = data;
+            break;
+
+        case (0x3f14):
+            pallette[(addr - 0x10) - 0x3f00] = data;
+            break;
+
+        case (0x3f18):
+            pallette[(addr - 0x10) - 0x3f00] = data;
+            break;
+
+        case (0x3f1c):
+            pallette[(addr - 0x10) - 0x3f00] = data;
+            break;
+
+        default:
+            pallette[addr - 0x3f00] = data;
+        }
+    }
+
+    // pallette mirror
+    else if (addr >= 0x3f20 && addr <= 0x3fff)
+    {
+        write_mem(((addr & 0x1F) + 0x3f00), data);
     }
 }
