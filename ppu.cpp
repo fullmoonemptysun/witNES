@@ -1,3 +1,12 @@
+/**
+ * @author Vinnie, 2026
+ * If you wish to use this implementation of the NES PPU, please give credit to the author wherever due.
+ *
+ *
+ *
+ * TODO: 08/11/2026 Fix register logic (PPUSCROLL, PPUDATA, PPUADDR behavior) with w register (2 writes), Implement OAMDMA, Start the rest of the cycles (vblank polling, pre render, post render scanlines), add sprite 0 hit update logic if it occurs.
+ */
+
 #include "ppu.h"
 #include <iostream>
 #include "disasm.h"
