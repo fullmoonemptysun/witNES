@@ -4,14 +4,12 @@
  *
  *
  *
- * TODO: 08/11/2026 Fix register logic (PPUSCROLL, PPUDATA, PPUADDR behavior) with w register (2 writes), Implement OAMDMA, Start the rest of the cycles (vblank polling, pre render, post render scanlines), add sprite 0 hit update logic if it occurs.
+ * TODO: 08/18/2026 Fix register logic (PPUDATA behavior) with w register (2 writes), Implement OAMDMA, Start the rest of the cycles (vblank polling, pre render, post render scanlines), add sprite 0 hit update logic if it occurs.
  */
 
 #include "ppu.h"
 #include <iostream>
 #include "disasm.h"
-
-
 
 using namespace std;
 
@@ -137,7 +135,7 @@ void ppu::clock()
         // TODO: Check bg_render_enable and sp_render_enable — treat disabled component as transparent (pixel = 0) before priority mux
         // decide which to render
 
-        //TODO: SET SPRITE 0 HIT FLAG
+        // TODO: SET SPRITE 0 HIT FLAG
 
         // FOR NOW EITHER BG or EXT. TODO: FIX THIS AFTER SPRITE PART IS DONE.
         uint8_t priority_mux_val = pmux[((bgpxaddr & 0x3) != 0)][0x00][0x00]; //[HARDCODED]
@@ -217,14 +215,9 @@ void ppu::clock()
     }
 
     // Dots after the visible cycles (visible scanline) (257 - 320)
-    else if((scanline >= 0 && scanline <= 239) && (257 <= dot && dot <= 320)){
-        //oamaddr is cleared
+    else if ((scanline >= 0 && scanline <= 239) && (257 <= dot && dot <= 320))
+    {
+        // oamaddr is cleared
         oamaddr = 0x00;
     }
-
-
-
-
-
-
 }

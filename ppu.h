@@ -45,8 +45,6 @@ public:
     bool bg_render_enable = false;
     bool sp_render_enable = false;
     uint8_t tile_no; //???
-  
-
 
     // NMI polling flag
     bool nmi_pending = false;

@@ -5,7 +5,7 @@ using namespace std;
 // register operations for the cpu
 uint8_t PPUBus::read_register(uint16_t addr)
 {
-    if (addr >= 0x2000 && addr <= 2007)
+    if (addr >= 0x2000 && addr <= 0x2007)
     {
         switch (addr)
         {
@@ -17,6 +17,7 @@ uint8_t PPUBus::read_register(uint16_t addr)
             latch = witppu->ppustatus; // latch fills with the data read.
             // reading clears the vblank flag
             witppu->ppustatus &= 0b01111111;
+            witppu->wreg = 0x00; // reading PPUSTATUS clears the w register
             return witppu->ppustatus;
         case 0x2003:
             return latch;
@@ -32,7 +33,7 @@ uint8_t PPUBus::read_register(uint16_t addr)
             latch = witppu->ppudata; // fill latch with data
             return witppu->ppudata;
         default:
-            return 0;
+            return latch;
         }
     }
 
@@ -46,8 +47,9 @@ uint8_t PPUBus::read_register(uint16_t addr)
         case 0x2001:
             return latch;
         case 0x2002:
-            latch = witppu->ppustatus; // latch fills with the data read.
-            witppu->wreg = 0x00; //reading PPUSTATUS clears the w register
+            latch = witppu->ppustatus;       // latch fills with the data read.
+            witppu->ppustatus &= 0b01111111; // clears vblank flag
+            witppu->wreg = 0x00;             // reading PPUSTATUS clears the w register
             return witppu->ppustatus;
         case 0x2003:
             return latch;
@@ -66,7 +68,7 @@ uint8_t PPUBus::read_register(uint16_t addr)
             return witppu->ppudata;
 
         default:
-            return;
+            return latch;
         }
     }
 
@@ -88,7 +90,7 @@ uint8_t PPUBus::read_register(uint16_t addr)
 
 void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
 {
-    if (addr >= 0x2000 && addr <= 2007)
+    if (addr >= 0x2000 && addr <= 0x2007)
     {
         switch (addr)
         {
@@ -98,7 +100,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             if (cycles > 29658)
             {
                 witppu->ppuctrl = data;
-                witppu->treg = CAST_15((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); //set nametable bits of treg
+                witppu->treg = CAST_15((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); // set nametable bits of treg
                 latch = witppu->ppuctrl;
             }
 
@@ -129,38 +131,58 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             latch = witppu->oamaddr;
             break;
 
-        case 0x2004:
+        case 0x2004: // OAMDATA
 
-            if((witppu->scanline >= 0) && (witppu->scanline <= 239) && (witppu->dot >= 1) && (witppu->dot <= 256)){
-                //no writes to OAM allowed during rendering
+            if ((witppu->scanline >= 0) && (witppu->scanline <= 239) && (witppu->dot >= 1) && (witppu->dot <= 256))
+            {
+                // no writes to OAM allowed during rendering
                 break;
             }
             witppu->oamdata = data;
+            write_mem(witppu->oamaddr, data);
             latch = witppu->oamdata;
             witppu->oamaddr++;
             break;
 
-        case 0x2005:
+        case 0x2005: // PPUSCROLL
             if (cycles > 29658)
             {
-                
+
                 witppu->ppuscroll = data;
-                if(witppu->wreg){//second write Y scroll position
+                if (witppu->wreg)
+                { // second write Y scroll position
                     witppu->treg = CAST_15(((witppu->treg & 0b000110000011111) | (witppu->ppuscroll << 12)) | ((witppu->ppuscroll & 0b11111000) << 2));
                 }
-                else{//first write X scroll position
-                    witppu->treg = CAST_15((witppu->treg & 0xFFE0) | (witppu->ppuscroll >> 3)); //update coarse X
-                    witppu->xreg_ppu = (witppu->ppuscroll & 0b00000111); //update fine X
-                    
+                else
+                {                                                                               // first write X scroll position
+                    witppu->treg = CAST_15((witppu->treg & 0xFFE0) | (witppu->ppuscroll >> 3)); // update coarse X
+                    witppu->xreg_ppu = (witppu->ppuscroll & 0b00000111);                        // update fine X
                 }
                 latch = witppu->ppuscroll;
+
+                witppu->wreg ^= 1;
             }
             break;
 
-        case 0x2006:
+        case 0x2006: // PPUADDR
             if (cycles > 29658)
             {
+
                 witppu->ppuaddr = data;
+
+                if (witppu->wreg)
+                { // second write (lower byte)
+                    witppu->treg &= 0xFF00;
+                    witppu->treg += witppu->ppuaddr;
+                }
+
+                else
+                { // first write high byte (5-0)
+                    witppu->treg &= 0x00FF;
+                    witppu->treg = CAST_14(witppu->treg + (witppu->ppuaddr << 8)); // clears bits 14 & 15
+                }
+
+                witppu->wreg ^= 1;
                 latch = witppu->ppuaddr;
             }
             break;
@@ -176,15 +198,32 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         uint16_t tmpaddr = (addr & 0x0007) + 0x2000;
         switch (tmpaddr)
         {
-        case 0x2000:
 
-            witppu->ppuctrl = data;
-            latch = witppu->ppuctrl;
+        // PPUCTRL
+        case 0x2000:
+            if (cycles > 29658)
+            {
+                witppu->ppuctrl = data;
+                witppu->treg = CAST_15((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); // set nametable bits of treg
+                latch = witppu->ppuctrl;
+            }
+
             break;
 
+        // PPUMASK
         case 0x2001:
-            witppu->ppumask = data;
-            latch = witppu->ppumask;
+            if (cycles > 29658)
+            {
+                witppu->ppumask = data;
+
+                // every write to ppumask may change the rendering status
+                witppu->bg_render_enable = (bool)(0b00001000 & witppu->ppumask);
+                witppu->sp_render_enable = (bool)(0b00010000 & witppu->ppumask);
+
+                witppu->grayscale = (bool)(0x1 & witppu->ppumask); // grayscale mode (0: off, 1: on)
+
+                latch = witppu->ppumask;
+            }
             break;
 
         case 0x2002:
@@ -196,20 +235,60 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             latch = witppu->oamaddr;
             break;
 
-        case 0x2004:
+        case 0x2004: // OAMDATA
+
+            if ((witppu->scanline >= 0) && (witppu->scanline <= 239) && (witppu->dot >= 1) && (witppu->dot <= 256))
+            {
+                // no writes to OAM allowed during rendering
+                break;
+            }
             witppu->oamdata = data;
+            write_mem(witppu->oamaddr, data);
             latch = witppu->oamdata;
-            witppu->oamaddr += 1;
+            witppu->oamaddr++;
             break;
 
-        case 0x2005:
-            witppu->ppuscroll = data;
-            latch = witppu->ppuscroll;
+        case 0x2005: // PPUSCROLL
+            if (cycles > 29658)
+            {
+
+                witppu->ppuscroll = data;
+                if (witppu->wreg)
+                { // second write Y scroll position
+                    witppu->treg = CAST_15(((witppu->treg & 0b000110000011111) | (witppu->ppuscroll << 12)) | ((witppu->ppuscroll & 0b11111000) << 2));
+                }
+                else
+                {                                                                               // first write X scroll position
+                    witppu->treg = CAST_15((witppu->treg & 0xFFE0) | (witppu->ppuscroll >> 3)); // update coarse X
+                    witppu->xreg_ppu = (witppu->ppuscroll & 0b00000111);                        // update fine X
+                }
+                latch = witppu->ppuscroll;
+
+                witppu->wreg ^= 1;
+            }
             break;
 
-        case 0x2006:
-            witppu->ppuaddr = data;
-            latch = witppu->ppuaddr;
+        case 0x2006: // PPUADDR
+            if (cycles > 29658)
+            {
+
+                witppu->ppuaddr = data;
+
+                if (witppu->wreg)
+                { // second write (lower byte)
+                    witppu->treg &= 0xFF00;
+                    witppu->treg += witppu->ppuaddr;
+                }
+
+                else
+                { // first write high byte (5-0)
+                    witppu->treg &= 0x00FF;
+                    witppu->treg = CAST_14(witppu->treg + (witppu->ppuaddr << 8)); // clears bits 14 & 15
+                }
+
+                witppu->wreg ^= 1;
+                latch = witppu->ppuaddr;
+            }
             break;
         case 0x2007:
             witppu->ppudata = data;
@@ -271,6 +350,12 @@ uint8_t PPUBus ::read_mem(uint16_t addr)
         }
         return pallette[addr - 0x3f00];
     }
+
+    else
+    {
+        cout << "ERROR: TRYING TO READ OUT OF PPU MEMORY SPACE" << endl;
+        exit(-1);
+    }
 }
 
 void PPUBus ::write_mem(uint16_t addr, uint8_t data)
@@ -311,5 +396,11 @@ void PPUBus ::write_mem(uint16_t addr, uint8_t data)
     else if (addr >= 0x3f20 && addr <= 0x3fff)
     {
         write_mem(((addr & 0x1F) + 0x3f00), data);
+    }
+
+    else
+    {
+        cout << "ERROR: TRYING TO WRITE OUTSIDE OF PPU ADDR SPACE!!!" << endl;
+        exit(-1);
     }
 }
