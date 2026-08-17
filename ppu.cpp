@@ -11,10 +11,7 @@
 #include <iostream>
 #include "disasm.h"
 
-#define CAST_15(x) ((x) & 0x7FFF)
-#define CAST_14(x) ((x) & 0x3fff)
-#define CAST_5(x) ((x) & 0x1F)
-#define CAST_6(x) ((x) & 0x3F)
+
 
 using namespace std;
 
@@ -136,12 +133,14 @@ void ppu::clock()
         // calculate sprite pixel
         uint8_t spxaddr = 0;
 
-        // TODO: Figure out the 5th bit and how it is being added, finish frame buffer filling, start sdl part
+        // TODO: Add the 5th bit for sprites
         // TODO: Check bg_render_enable and sp_render_enable — treat disabled component as transparent (pixel = 0) before priority mux
         // decide which to render
 
+        //TODO: SET SPRITE 0 HIT FLAG
+
         // FOR NOW EITHER BG or EXT. TODO: FIX THIS AFTER SPRITE PART IS DONE.
-        uint8_t priority_mux_val = pmux[((bgpxaddr & 0x3) != 0)][0x00][0x00];
+        uint8_t priority_mux_val = pmux[((bgpxaddr & 0x3) != 0)][0x00][0x00]; //[HARDCODED]
 
         switch (priority_mux_val)
         {
@@ -216,4 +215,16 @@ void ppu::clock()
             }
         }
     }
+
+    // Dots after the visible cycles (visible scanline) (257 - 320)
+    else if((scanline >= 0 && scanline <= 239) && (257 <= dot && dot <= 320)){
+        //oamaddr is cleared
+        oamaddr = 0x00;
+    }
+
+
+
+
+
+
 }

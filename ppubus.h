@@ -32,7 +32,7 @@ public:
 
     array<uint8_t, 2 * 1024> vram; // vram 2 kilobytes
     array<uint8_t, 16> pallette;   // color pallette
-    array<uint8_t, 64> oam;
+    array<uint8_t, 256> oam = {}; //oam , TODO: 0 initiliazed for now
 
     uint8_t latch = 0x00; // latch value of the bus (last read/write)
 };

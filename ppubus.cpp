@@ -47,6 +47,7 @@ uint8_t PPUBus::read_register(uint16_t addr)
             return latch;
         case 0x2002:
             latch = witppu->ppustatus; // latch fills with the data read.
+            witppu->wreg = 0x00; //reading PPUSTATUS clears the w register
             return witppu->ppustatus;
         case 0x2003:
             return latch;
@@ -97,6 +98,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             if (cycles > 29658)
             {
                 witppu->ppuctrl = data;
+                witppu->treg = ((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); //set nametable bits of treg
                 latch = witppu->ppuctrl;
             }
 
@@ -128,14 +130,24 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             break;
 
         case 0x2004:
+
+            if((witppu->scanline >= 0) && (witppu->scanline <= 239) && (witppu->dot >= 1) && (witppu->dot <= 256)){
+                //no writes to OAM allowed during rendering
+                break;
+            }
             witppu->oamdata = data;
             latch = witppu->oamdata;
+            witppu->oamaddr++;
             break;
 
         case 0x2005:
             if (cycles > 29658)
             {
+                
                 witppu->ppuscroll = data;
+                if(witppu->wreg){//second write Y scroll position
+                    witppu->treg = CAST_15(((witppu->treg & 0b000110000011111) | (witppu->ppuscroll << 12)) | ((witppu->ppuscroll & 0b11111000) << 2));
+                }
                 latch = witppu->ppuscroll;
             }
             break;

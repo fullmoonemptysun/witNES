@@ -1,6 +1,11 @@
 #ifndef PPU_H
 #define PPU_H
 
+#define CAST_15(x) ((x) & 0x7FFF)
+#define CAST_14(x) ((x) & 0x3fff)
+#define CAST_5(x) ((x) & 0x1F)
+#define CAST_6(x) ((x) & 0x3F)
+
 #include <cstdint>
 #include "ppubus.h"
 #include <string>
@@ -40,6 +45,9 @@ public:
     bool bg_render_enable = false;
     bool sp_render_enable = false;
     uint8_t tile_no;
+    uint8_t X; //X scroll position
+    uint8_t Y; //Y scroll position
+
 
     // NMI polling flag
     bool nmi_pending = false;
