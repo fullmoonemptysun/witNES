@@ -30,7 +30,7 @@ public:
     uint8_t oamdma; // actually belongs to cpu
     uint16_t vreg;
     uint16_t treg;
-    uint16_t xreg_ppu;
+    uint8_t xreg_ppu;
     uint8_t wreg;
 
     // 3 shift registers
@@ -44,9 +44,8 @@ public:
     int dot;
     bool bg_render_enable = false;
     bool sp_render_enable = false;
-    uint8_t tile_no;
-    uint8_t X; //X scroll position
-    uint8_t Y; //Y scroll position
+    uint8_t tile_no; //???
+  
 
 
     // NMI polling flag

@@ -98,7 +98,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             if (cycles > 29658)
             {
                 witppu->ppuctrl = data;
-                witppu->treg = ((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); //set nametable bits of treg
+                witppu->treg = CAST_15((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); //set nametable bits of treg
                 latch = witppu->ppuctrl;
             }
 
@@ -147,6 +147,11 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 witppu->ppuscroll = data;
                 if(witppu->wreg){//second write Y scroll position
                     witppu->treg = CAST_15(((witppu->treg & 0b000110000011111) | (witppu->ppuscroll << 12)) | ((witppu->ppuscroll & 0b11111000) << 2));
+                }
+                else{//first write X scroll position
+                    witppu->treg = CAST_15((witppu->treg & 0xFFE0) | (witppu->ppuscroll >> 3)); //update coarse X
+                    witppu->xreg_ppu = (witppu->ppuscroll & 0b00000111); //update fine X
+                    
                 }
                 latch = witppu->ppuscroll;
             }
