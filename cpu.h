@@ -14,8 +14,7 @@ private:
         void write(uint16_t a, uint8_t d);
         uint8_t read(uint16_t addr);
 
-        //flag OAMDMA suspend active
-        int dma_remaining = 0;
+      
         
 
         //Instruction structure
@@ -30,7 +29,7 @@ private:
 
      
 
-        vector<INSTRUCTION> lookup;
+        
 
 
 public:
@@ -38,7 +37,9 @@ public:
          ~cpu() {};
     
 
-
+        vector<INSTRUCTION> lookup;
+          //flag OAMDMA suspend active
+        int dma_remaining = 0;
 
     //Human Readable Flags
     enum FLAGSTAT{

@@ -51,7 +51,7 @@ void Bus:: write(uint16_t addr, uint8_t data){
         else if(addr == 0x4014){
             ppub->write_register(addr, data, witcpu->cputicks);
 
-            witcpu->dma_remaining = ((witcpu->cputicks + witcpu->opcode) % 2 == 0)? //TODO: FINISH DMA 
+            witcpu->dma_remaining = ((witcpu->cputicks + witcpu->lookup[witcpu->opcode].cycles) % 2 == 0)?514:513;
         }
 
 
