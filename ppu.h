@@ -27,11 +27,13 @@ public:
     uint8_t ppuscroll;
     uint8_t ppuaddr;
     uint8_t ppudata;
+    uint8_t pdatabuf; //buffer for ppudata (1 step slow writes)
     uint8_t oamdma; // actually belongs to cpu
     uint16_t vreg;
     uint16_t treg;
     uint8_t xreg_ppu;
     uint8_t wreg;
+
 
     // 3 shift registers
     uint16_t shft_reg_hi;

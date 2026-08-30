@@ -30,8 +30,16 @@ uint8_t PPUBus::read_register(uint16_t addr)
         case 0x2006:
             return latch;
         case 0x2007:
-            latch = witppu->ppudata; // fill latch with data
-            return witppu->ppudata;
+            uint8_t val = witppu->pdatabuf; // store old value somewhere
+
+            witppu->ppudata = read_mem(witppu->vreg); // load new data in ppudata and in buf
+            witppu->pdatabuf = witppu->ppudata;
+
+            // increment v
+            witppu->vreg += (witppu->ppuctrl & 0b00000100) ? 1 : 32; // 1 means go to next tile, 32 means go down a row in the current col
+
+            latch = val;
+            return val;
         default:
             return latch;
         }
@@ -64,8 +72,16 @@ uint8_t PPUBus::read_register(uint16_t addr)
         case 0x2006:
             return latch;
         case 0x2007:
-            latch = witppu->ppudata; // fill latch with data
-            return witppu->ppudata;
+            uint8_t val = witppu->pdatabuf; // store old value somewhere
+
+            witppu->ppudata = read_mem(witppu->vreg); // load new data in ppudata and in buf
+            witppu->pdatabuf = witppu->ppudata;
+
+            // increment v
+            witppu->vreg += (witppu->ppuctrl & 0b00000100) ? 1 : 32; // 1 means go to next tile, 32 means go down a row in the current col
+
+            latch = val;
+            return val;
 
         default:
             return latch;
@@ -152,6 +168,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 if (witppu->wreg)
                 { // second write Y scroll position
                     witppu->treg = CAST_15(((witppu->treg & 0b000110000011111) | (witppu->ppuscroll << 12)) | ((witppu->ppuscroll & 0b11111000) << 2));
+                    witppu->vreg = witppu->treg; // second write, scroll coordinates are loaded so move to v
                 }
                 else
                 {                                                                               // first write X scroll position
@@ -174,6 +191,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 { // second write (lower byte)
                     witppu->treg &= 0xFF00;
                     witppu->treg += witppu->ppuaddr;
+                    witppu->vreg = witppu->treg; // on second write, address is complete, copy to v.
                 }
 
                 else
@@ -186,9 +204,21 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 latch = witppu->ppuaddr;
             }
             break;
+
+            // PPUDATA
         case 0x2007:
-            witppu->ppudata = data;
-            latch = witppu->ppudata;
+
+            // only write when not rendering
+            if ((!((witppu->ppumask) & 0b00010000) && !((witppu->ppumask) & 0b00001000)) || (witppu->scanline >= 241 && witppu->scanline <= 260))
+            {
+                witppu->ppudata = data;
+                write_mem(witppu->vreg, data); // write to the address in v.
+                // increment v
+                witppu->vreg += (witppu->ppuctrl & 0b00000100) ? 1 : 32; // 1 means go to next tile, 32 means go down a row in the current col
+
+                latch = witppu->ppudata;
+            }
+
             break;
         }
     }
@@ -256,6 +286,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 if (witppu->wreg)
                 { // second write Y scroll position
                     witppu->treg = CAST_15(((witppu->treg & 0b000110000011111) | (witppu->ppuscroll << 12)) | ((witppu->ppuscroll & 0b11111000) << 2));
+                    witppu->vreg = witppu->treg; // second write, scroll coordinates are loaded so move to v
                 }
                 else
                 {                                                                               // first write X scroll position
@@ -278,6 +309,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 { // second write (lower byte)
                     witppu->treg &= 0xFF00;
                     witppu->treg += witppu->ppuaddr;
+                    witppu->vreg = witppu->treg; // on second write, address is complete, copy to v.
                 }
 
                 else
@@ -290,9 +322,21 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 latch = witppu->ppuaddr;
             }
             break;
+
+            // PPUDATA
         case 0x2007:
-            witppu->ppudata = data;
-            latch = witppu->ppudata;
+
+            // only write when not rendering
+            if ((!((witppu->ppumask) & 0b00010000) && !((witppu->ppumask) & 0b00001000)) || (witppu->scanline >= 241 && witppu->scanline <= 260))
+            {
+                witppu->ppudata = data;
+                write_mem(witppu->vreg, data); // write to the address in v.
+                // increment v
+                witppu->vreg += (witppu->ppuctrl & 0b00000100) ? 1 : 32; // 1 means go to next tile, 32 means go down a row in the current col
+
+                latch = witppu->ppudata;
+            }
+
             break;
         }
     }
