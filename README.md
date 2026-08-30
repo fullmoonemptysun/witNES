@@ -1,4 +1,4 @@
-# witNES Emulator - Development Notes
+# witNES - Development Notes
 
 ## Overview
 
