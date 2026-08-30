@@ -13,6 +13,9 @@ private:
         Bus* bus = nullptr; //initial bus state
         void write(uint16_t a, uint8_t d);
         uint8_t read(uint16_t addr);
+
+        //flag OAMDMA suspend active
+        int dma_remaining = 0;
         
 
         //Instruction structure

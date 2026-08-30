@@ -4,7 +4,7 @@
  *
  *
  *
- * TODO: 08/18/2026 Fix register logic (PPUDATA behavior) with w register (2 writes), Implement OAMDMA, Start the rest of the cycles (vblank polling, pre render, post render scanlines), add sprite 0 hit update logic if it occurs.
+ * TODO: 08/30/2026 Implement OAMDMA, Start the rest of the cycles (vblank polling, pre render, post render scanlines), add sprite 0 hit update logic if it occurs.
  */
 
 #include "ppu.h"
