@@ -1,4 +1,4 @@
-# NES Emulator - Development Notes
+# witNES - Development Notes
 
 ## Overview
 
@@ -240,14 +240,14 @@ The clock() function is called from outside and represents a tick. Every time it
 
 - Store tiles for the background of 1 screen (256 x 240 pixels).
 
-The NES screen can scroll. To scroll smoothly, the PPU needs more than one screen's worth of background data: so it has 4 logical nametable slots arranged in a 2x2 grid (two screens wide, two screens tall). This gives you a larger "world" to scroll around in.
+The NES screen can scroll. To scroll smoothly, the PPU needs more than one screen's worth of background data: so it has 4 logical nametable slots arranged in a 2x2 grid (two screens wide, two screens tall). This gives us a larger "world" to scroll around in.
 
 But the NES only has enough physical RAM (CIRAM) for 2 nametables, not 4. So two of the four logical slots have to be mirrors of the other two. Which ones mirror which depends on the game's scrolling direction:
 
 - **Horizontal mirroring**: for games that scroll vertically (like Kid Icarus). Left and right nametables are the same.
 - **Vertical mirroring**: for games that scroll horizontally (like Super Mario Bros). Top and bottom nametables are the same.
 
-That's all it's saying. For NROM you just need to implement one of these two mirroring modes based on the flag in `header[6]` that you already read. You don't need to worry about four-screen or mapper-controlled mirroring for now.
+That's all it's saying. For NROM I just need to implement one of these two mirroring modes based on the flag in `header[6]` that I already read. I don't need to worry about four-screen or mapper-controlled mirroring for now.
 
 > **So how does the PPU render one scanline (left to right) of the background?**
 >
@@ -336,7 +336,7 @@ yyy NN YYYYY XXXXX
 
 `S AA PP`
 
-Then the flow is: palette RAM ($3F00-$3F1F) stores a 6-bit index (0-63) which looks up into your 64-color master palette array, which gives you the actual RGB to put on screen. Two levels of indirection between "what the game writes" and "what pixel color appears."
+Then the flow is: palette RAM ($3F00-$3F1F) stores a 6-bit index (0-63) which looks up into my 64-color master palette array, which gives me the actual RGB to put on screen. Two levels of indirection between "what the game writes" and "what pixel color appears."
 
 ### Accessing PPUDATA during rendering
 
