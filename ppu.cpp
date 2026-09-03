@@ -4,7 +4,7 @@
  *
  *
  *
- * TODO: 08/30/2026 Implement OAMDMA, Start the rest of the cycles (vblank polling, pre render, post render scanlines), add sprite 0 hit update logic if it occurs.
+ * TODO: 09/01/2026 Start the rest of the cycles (vblank polling, pre render, post render scanlines), add sprite 0 hit update logic if it occurs.
  */
 
 #include "ppu.h"
@@ -157,7 +157,7 @@ void ppu::clock()
         }
 
         // if 8 dot boundary, then do mem fetches
-        if ((dot % 8 == 0))
+        if ((dot % 8 == 0) && dot < 256)
         {
 
             // inc. hor(v)
@@ -212,12 +212,153 @@ void ppu::clock()
                 cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
             }
         }
+
+        // at dot 256
+        else
+        {
+            // inc. fine_y
+            uint8_t fine_y = ((vreg >> 12) & 0x0F);
+
+            fine_y += 1;
+            if (fine_y > 7)
+            {
+                vreg &= 0x0fff; // clear fine_y
+                uint8_t coarse_y = (vreg >> 5) & 0b0011111;
+                vreg &= 0xfc1f; // clear coarse_y
+
+                coarse_y += 1;
+
+                if (coarse_y > 29)
+                {
+                    vreg ^= 0x0800; // flip vertical bit
+                }
+
+                else
+                {
+                    vreg += (coarse_y << 5);
+                }
+            }
+            else
+            {
+                vreg &= 0x0fff; // clear fine_y
+                vreg += fine_y << 12;
+            }
+        }
     }
 
     // Dots after the visible cycles (visible scanline) (257 - 320)
     else if ((scanline >= 0 && scanline <= 239) && (257 <= dot && dot <= 320))
     {
         // oamaddr is cleared
+
+        // TODO: IMPLEMENT SPRITE TILE DATA FETCH WHEN READY FOR SPRITE RENDERING
         oamaddr = 0x00;
+
+        // return the horizontal n table bit and coarse_x to v from t. (Horizontal reset)
+        vreg = CAST_15((vreg & 0xFBE0) | (treg & 0x041f)); // clear namtable bit and coarse_x
+    }
+
+    else if ((scanline >= 0 && scanline <= 239) && (321 <= dot && dot <= 336))
+    {
+        // do 1st set of fetches here
+        if (dot == 321)
+        {
+
+            // nt fetch
+            //  get tile no. from nametable
+            uint8_t tileno = read_nt(vreg & 0x3ff);
+            uint16_t ptdata = read_pt(tileno);
+
+            // Set the shift registers next 8 bits (on the upper byte this time)
+            shft_reg_hi = (ptdata & 0xff00);
+            shft_reg_lo = ((ptdata & 0x00ff) << 8);
+
+            // debugging
+            cout << "0x" << toHex(tileno) << endl;
+
+            // at fetch
+            uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
+            uint8_t val = ((vreg & 0x001F) & 0x2) + ((((vreg & 0x1E0) >> 5) & 0x2) >> 1);
+            switch (val)
+            {
+            case 0: // top-left
+                attr_reg_hi = (((at_byte & 0b00000010) >> 1) * 0xFF) << 8;
+                attr_reg_lo = (((at_byte & 0b00000001)) * 0xFF) << 8;
+                break;
+            case 1:
+                attr_reg_hi = (((at_byte & 0b00100000) >> 5) * 0xFF) << 8;
+                attr_reg_lo = (((at_byte & 0b00010000) >> 4) * 0xFF) << 8;
+                break;
+            case 2:
+                attr_reg_hi = (((at_byte & 0b00001000) >> 3) * 0xFF) << 8;
+                attr_reg_lo = (((at_byte & 0b00000100) >> 2) * 0xFF) << 8;
+                break;
+            case 3:
+                attr_reg_hi = (((at_byte & 0b10000000) >> 7) * 0xFF) << 8;
+                attr_reg_lo = (((at_byte & 0b01000000) >> 6) * 0xFF) << 8;
+                break;
+            default:
+                // debug
+                cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+            }
+        }
+
+        // second set of fetches
+        else if (dot == 323)
+        {
+            // inc. hor(v)
+            int coarse_x = vreg & 0x1F;
+            // out of nametable boundary horizontally
+            if ((coarse_x + 1) >= 32)
+            {
+                vreg = vreg & 0xFFE0;
+                // flip horizontal bit
+                vreg ^= 0x0400; // flip bit 10
+            }
+            else
+            {
+                vreg = CAST_15(vreg + 1);
+            }
+
+            // nt fetch
+            //  get tile no. from nametable
+            uint8_t tileno = read_nt(vreg & 0x3ff);
+            uint16_t ptdata = read_pt(tileno);
+
+            // Set the shift registers next 8 bits
+            shft_reg_hi |= (ptdata >> 8);
+            shft_reg_lo |= (ptdata & 0x00ff);
+
+            // debugging
+            cout << "0x" << toHex(tileno) << endl;
+
+            // at fetch
+            uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
+            uint8_t val = ((vreg & 0x001F) & 0x2) + ((((vreg & 0x1E0) >> 5) & 0x2) >> 1);
+            switch (val)
+            {
+            case 0: // top-left
+                attr_reg_hi |= ((at_byte & 0b00000010) >> 1) * 0xFF;
+                attr_reg_lo |= ((at_byte & 0b00000001)) * 0xFF;
+                break;
+            case 1:
+                attr_reg_hi |= ((at_byte & 0b00100000) >> 5) * 0xFF;
+                attr_reg_lo |= ((at_byte & 0b00010000) >> 4) * 0xFF;
+                break;
+            case 2:
+                attr_reg_hi |= ((at_byte & 0b00001000) >> 3) * 0xFF;
+                attr_reg_lo |= ((at_byte & 0b00000100) >> 2) * 0xFF;
+                break;
+            case 3:
+                attr_reg_hi |= ((at_byte & 0b10000000) >> 7) * 0xFF;
+                attr_reg_lo |= ((at_byte & 0b01000000) >> 6) * 0xFF;
+                break;
+            default:
+                // debug
+                cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+            }
+        }
+
+        // rest of the dots are idle
     }
 }

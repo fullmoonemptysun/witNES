@@ -343,6 +343,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
 
     else if (addr == 0x4014)
     {
+        cout << "[INFO] OAMDMA HAPPENED" << endl;
     }
 
     else
