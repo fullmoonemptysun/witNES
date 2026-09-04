@@ -52,7 +52,7 @@ void cpu::reset(){
 }
 
 void cpu::clock(){
-    if(cycle == 0 && !dma_remaining){
+    if(cycle == 0 && !dma_remaining && !nmi_due ){
 
 
         // //debug
@@ -125,6 +125,13 @@ void cpu::clock(){
 
     else if(dma_remaining){
         dma_remaining -= 1;
+        cputicks += 1;
+    }
+
+    else if(nmi_due){
+        cycle = 6;
+        nmi();
+        nmi_due = false;
         cputicks += 1;
     }
 

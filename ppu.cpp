@@ -244,6 +244,8 @@ void ppu::clock()
                 vreg += fine_y << 12;
             }
         }
+
+        dot += 1;
     }
 
     // Dots after the visible cycles (visible scanline) (257 - 320)
@@ -256,6 +258,8 @@ void ppu::clock()
 
         // return the horizontal n table bit and coarse_x to v from t. (Horizontal reset)
         vreg = CAST_15((vreg & 0xFBE0) | (treg & 0x041f)); // clear namtable bit and coarse_x
+
+        dot += 1;
     }
 
     else if ((scanline >= 0 && scanline <= 239) && (321 <= dot && dot <= 336))
@@ -360,5 +364,44 @@ void ppu::clock()
         }
 
         // rest of the dots are idle
+        dot += 1;
     }
+
+
+    else if ((scanline >= 0 && scanline <= 239) && (337 <= dot && dot <= 340)){
+        dot += 1;
+        if(dot == 340){
+            //reset rendering variables
+            dot = 0;
+            scanline += 1;
+        }
+    }
+
+    //post render scanline is idle (240)
+    else if(scanline == 240){
+        //idle
+    }
+
+    //vBlank 
+    else if(scanline >= 241 && scanline <= 260){
+
+        //check if vblank enbabled
+
+        if(dot == 1){
+            ppustatus |= 0b10000000; //set vblank flag
+
+            if((ppuctrl & 0b10000000)){
+                bus->mainbus->witcpu->nmi_due = true;
+            }
+        }
+
+
+        
+      
+
+        dot += 1;
+    }
+
+
+
 }

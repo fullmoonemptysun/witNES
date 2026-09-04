@@ -56,7 +56,8 @@ public:
 
     //total ticks ran (for ppu reference)
     uint16_t cputicks = 0x0000;
-    
+    //nmi poll
+    bool nmi_due = 0;
 
 
     
@@ -117,7 +118,15 @@ public:
     }
 
     //non maskable interrupt
-    void nmi() {};
+    void nmi() {
+        push(pc >> 8); //upper bits will be truncated
+        push(pc); //same
+
+        push(status | 0b00100000);
+        setFlag(I, 1);
+
+        pc = read(0xFFFA) | (read(0xFFFB) << 8);
+    };
 
 
     
