@@ -367,41 +367,167 @@ void ppu::clock()
         dot += 1;
     }
 
+    else if ((scanline >= 0 && scanline <= 239) && (337 <= dot && dot <= 339))
+    {
 
-    else if ((scanline >= 0 && scanline <= 239) && (337 <= dot && dot <= 340)){
         dot += 1;
-        if(dot == 340){
-            //reset rendering variables
+    }
+
+    else if ((scanline <= 260) && dot == 340)
+    {
+
+        // reset rendering variables
+        dot = 0;
+        scanline += 1;
+    }
+
+    // pre render scanline
+    else if (scanline == 261)
+    {
+
+        if (dot < 340)
+        {
+            // random dot chosen to update state for next frame
+            if (dot == 280)
+            {
+                vreg = treg; // put scroll value in v
+
+                // nt fetch
+                //  get tile no. from nametable
+                uint8_t tileno = read_nt(vreg & 0x3ff);
+                uint16_t ptdata = read_pt(tileno);
+
+                // Set the shift registers next 8 bits (on the upper byte this time)
+                shft_reg_hi = (ptdata & 0xff00);
+                shft_reg_lo = ((ptdata & 0x00ff) << 8);
+
+                // debugging
+                cout << "0x" << toHex(tileno) << endl;
+
+                // at fetch
+                uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
+                uint8_t val = ((vreg & 0x001F) & 0x2) + ((((vreg & 0x1E0) >> 5) & 0x2) >> 1);
+                switch (val)
+                {
+                case 0: // top-left
+                    attr_reg_hi = (((at_byte & 0b00000010) >> 1) * 0xFF) << 8;
+                    attr_reg_lo = (((at_byte & 0b00000001)) * 0xFF) << 8;
+                    break;
+                case 1:
+                    attr_reg_hi = (((at_byte & 0b00100000) >> 5) * 0xFF) << 8;
+                    attr_reg_lo = (((at_byte & 0b00010000) >> 4) * 0xFF) << 8;
+                    break;
+                case 2:
+                    attr_reg_hi = (((at_byte & 0b00001000) >> 3) * 0xFF) << 8;
+                    attr_reg_lo = (((at_byte & 0b00000100) >> 2) * 0xFF) << 8;
+                    break;
+                case 3:
+                    attr_reg_hi = (((at_byte & 0b10000000) >> 7) * 0xFF) << 8;
+                    attr_reg_lo = (((at_byte & 0b01000000) >> 6) * 0xFF) << 8;
+                    break;
+                default:
+                    // debug
+                    cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                }
+            }
+
+            // another random dot to do 2nd set of fetches
+            else if (dot == 285)
+            {
+                // inc. hor(v)
+                int coarse_x = vreg & 0x1F;
+
+                // out of nametable boundary horizontally
+                if ((coarse_x + 1) >= 32)
+                {
+
+                    vreg = vreg & 0xFFE0;
+
+                    // flip horizontal bit
+                    vreg ^= 0x0400; // flip bit 10
+                }
+                else
+                {
+                    vreg = CAST_15(vreg + 1);
+                }
+
+                // nt fetch
+                //  get tile no. from nametable
+                uint8_t tileno = read_nt(vreg & 0x3ff);
+                uint16_t ptdata = read_pt(tileno);
+
+                // Set the shift registers next 8 bits
+                shft_reg_hi |= (ptdata >> 8);
+                shft_reg_lo |= (ptdata & 0x00ff);
+
+                // debugging
+                cout << "0x" << toHex(tileno) << endl;
+
+                // at fetch
+                uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
+                uint8_t val = ((vreg & 0x001F) & 0x2) + ((((vreg & 0x1E0) >> 5) & 0x2) >> 1);
+
+                switch (val)
+                {
+                case 0: // top-left
+                    attr_reg_hi |= ((at_byte & 0b00000010) >> 1) * 0xFF;
+                    attr_reg_lo |= ((at_byte & 0b00000001)) * 0xFF;
+                    break;
+                case 1:
+                    attr_reg_hi |= ((at_byte & 0b00100000) >> 5) * 0xFF;
+                    attr_reg_lo |= ((at_byte & 0b00010000) >> 4) * 0xFF;
+                    break;
+                case 2:
+                    attr_reg_hi |= ((at_byte & 0b00001000) >> 3) * 0xFF;
+                    attr_reg_lo |= ((at_byte & 0b00000100) >> 2) * 0xFF;
+                    break;
+                case 3:
+                    attr_reg_hi |= ((at_byte & 0b10000000) >> 7) * 0xFF;
+                    attr_reg_lo |= ((at_byte & 0b01000000) >> 6) * 0xFF;
+                    break;
+                default:
+                    // debug
+                    cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                }
+            }
+            dot += 1;
+        }
+
+        else
+        {
+            // reset rendering variables
             dot = 0;
-            scanline += 1;
+            scanline += 0;
         }
     }
 
-    //post render scanline is idle (240)
-    else if(scanline == 240){
-        //idle
+    // post render scanline is idle (240)
+    else if (scanline == 240)
+    {
+        // idle
     }
 
-    //vBlank 
-    else if(scanline >= 241 && scanline <= 260){
+    // vBlank
+    else if (scanline >= 241 && scanline <= 260)
+    {
 
-        //check if vblank enbabled
+        // check if vblank enbabled
 
-        if(dot == 1){
-            ppustatus |= 0b10000000; //set vblank flag
+        if (dot == 1)
+        {
+            ppustatus |= 0b10000000; // set vblank flag
 
-            if((ppuctrl & 0b10000000)){
+            if ((ppuctrl & 0b10000000))
+            {
                 bus->mainbus->witcpu->nmi_due = true;
             }
         }
 
-
-        
-      
+        else if (dot == 260)
+        {
+            ppustatus &= 0b01111111;
+        }
 
         dot += 1;
     }
-
-
-
 }
