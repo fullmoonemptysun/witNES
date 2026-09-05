@@ -1,5 +1,5 @@
 # witNES - Development Notes
-
+This README is a compilation of my personal notes, and not a tutorial. I don't claim that this is the best NES implementation; but only my attempt at it. If you choose to copy parts of this emulator, please give credit where it's due. A lot of time, frustration, and learning went into building this from scratch.
 ## Overview
 
 ### Overview of NES structure
