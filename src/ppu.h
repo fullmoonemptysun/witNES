@@ -9,6 +9,7 @@
 #include <cstdint>
 
 #include <string>
+#include <vector>
 #include <array>
 
 using namespace std;
@@ -81,10 +82,12 @@ private:
         {{1, 1}, {0, 1}}};
 
     // frame bitmap
-    array<array<uint8_t, 3>, 61440> frame;
+    
+    vector<vector<uint8_t>> frame = vector<vector<uint8_t>>(61440, std::vector<uint8_t>(3, 0));
+    
 
     //master palette
-    array<array<uint8_t, 3> , 64> mpallette = {{
+    vector<vector<uint8_t>> mpallette = {{
         {66, 71, 74},{0, 10, 114},{6, 0, 133},{42, 0, 120},{68, 0, 78},{79, 0, 17},{72, 0, 0},{48, 11, 0},
 
         {14, 32, 0},{0, 47, 0},{0, 53, 0},{0, 46, 4},{0, 30, 66},{0, 30, 66},{0, 30, 66},{0, 30, 66},

@@ -2,6 +2,7 @@
 #define DISPLAY_H
 
 #include <cstdint>
+#include <vector>
 
 
 class Display {
@@ -9,10 +10,11 @@ class Display {
     public:
         void create_display();
         void close_display();
-        void refresh_frame(uint8_t**); //takes the 256x240 pixel array.
+        void refresh_frame(std::vector<std::vector<uint8_t>>&); //takes the 256x240 pixel array.
         
 
     private:
+
      
 
 };
