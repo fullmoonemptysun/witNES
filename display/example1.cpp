@@ -20,7 +20,7 @@ int main(int argc, char** args) {
 	} 
 
 	// Create our window
-	window = SDL_CreateWindow( "Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 256, 240, SDL_WINDOW_SHOWN );
+	window = SDL_CreateWindow( "Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 960, SDL_WINDOW_SHOWN );
 
 	// Make sure creating the window succeeded
 	if ( !window ) {

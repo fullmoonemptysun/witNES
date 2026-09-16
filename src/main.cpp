@@ -1,12 +1,15 @@
 #include <iostream>
 #include "cpu.h"
 #include "Bus.h"
+#include "SDL2/SDL.h"
+
 using namespace std;
 
 int main(int argc, char const *argv[])
 {
 
     Bus *cpubus;
+
     cpubus = new Bus(argv[1]); // creates cpu and cartridge
 
     // cout << "PC: " << cpubus->witcpu->pc << endl;
@@ -15,11 +18,25 @@ int main(int argc, char const *argv[])
     // cout << toHex(cpubus->witcpu->pc) << endl;
     // while(cpubus->witcpu->pc < 0xc700){
 
-    for (int i = 0; i < 15000; i++)
+    while (true)
     {
 
         // cout << "ENTERED LOOP" <<'\n';
+        // cpubus->ppub->witppu->clock();
+        // cpubus->ppub->witppu->clock();
+        // cpubus->ppub->witppu->clock();
         cpubus->witcpu->clock();
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT)
+            {
+                // handle quit
+
+                exit(-2);
+            }
+        }
     }
 
     cout << "TOTAL CYCLES: " << cpubus->witcpu->cputicks << '\n';

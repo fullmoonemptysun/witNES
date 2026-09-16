@@ -134,3 +134,37 @@ uint8_t Bus::read(uint16_t addr, bool bReadonly)
         return 0x00;
     }
 }
+
+                                                                                                                                          
+
+void Bus::stackdump(){
+    for(uint8_t i = 0; i < 32; i++){
+        memdmp << toHex(i); 
+        memdmp << " ";
+    }
+
+    
+
+    memdmp << '\n';
+    
+    for(uint8_t i = 0; i < 32; i++){
+        memdmp << "--"; 
+        memdmp << " ";
+    }
+
+    memdmp << '\n';
+
+    for(int i = 0x0100; i < 0x01ff; i+=32){
+        int j = 0;
+        while(j < 32 && (i+j) <= 0x01ff){
+            memdmp << toHex(read((i+j)));
+            memdmp << " ";
+            j++;
+        }
+
+        memdmp << '\n';
+        
+    }
+
+    memdmp << "\n\n";
+}

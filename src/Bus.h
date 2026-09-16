@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdlib>
 #include <cstdint>
+#include "fstream"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ public://devices on bus
    
    
 
-    array<uint8_t, 64 * 128> ram; //Fake RAM
+    array<uint8_t, 64 * 128> ram; //RAM
 
 
 public:
@@ -32,6 +33,10 @@ public:
     //no need for read or write signals because these methods state what operation is being done.
     void write(uint16_t addr, uint8_t data);
     uint8_t read(uint16_t addr, bool bReadOnly = false);
+    ofstream memdmp{"./memdump", ios::binary};
+    void stackdump();
+
+    
 };
 
 

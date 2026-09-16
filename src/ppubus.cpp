@@ -10,26 +10,34 @@ uint8_t PPUBus::read_register(uint16_t addr)
         switch (addr)
         {
         case 0x2000:
+            //debug 
+            cout << "CPU: TRYING TO READ FROM: PPUCTRL" << endl;
             return latch;
         case 0x2001:
+        cout << "CPU: TRYING TO READ FROM: PPUMASK" << endl;
             return latch;
         case 0x2002:
+            cout << "CPU: TRYING TO READ FROM: PPUSTATUS" << endl;
             latch = witppu->ppustatus; // latch fills with the data read.
             // reading clears the vblank flag
             witppu->ppustatus &= 0b01111111;
             witppu->wreg = 0x00; // reading PPUSTATUS clears the w register
-            return witppu->ppustatus;
+            return latch;
         case 0x2003:
+            cout << "CPU: TRYING TO READ FROM: OAMADDR" << endl;
             return latch;
         case 0x2004:
+            cout << "CPU: TRYING TO READ FROM: OAMDATA" << endl;
             latch = witppu->oamdata; // fill latch w data
             return witppu->oamdata;
         case 0x2005:
-
+            cout << "CPU: TRYING TO READ FROM: PPUSCROLL" << endl;
             return latch;
         case 0x2006:
+        cout << "CPU: TRYING TO READ FROM: PPUADDR" << endl;
             return latch;
         case 0x2007:{
+            cout << "CPU: TRYING TO READ FROM: PPUDATA" << endl;
             uint8_t val = witppu->pdatabuf; // store old value somewhere
 
             witppu->ppudata = read_mem(witppu->vreg); // load new data in ppudata and in buf
@@ -52,27 +60,34 @@ uint8_t PPUBus::read_register(uint16_t addr)
         switch (tmpaddr)
         {
         case 0x2000:
+            //debug 
+            cout << "CPU: TRYING TO READ FROM: PPUCTRL" << endl;
             return latch;
         case 0x2001:
+        cout << "CPU: TRYING TO READ FROM: PPUMASK" << endl;
             return latch;
         case 0x2002:
-            latch = witppu->ppustatus;       // latch fills with the data read.
-            witppu->ppustatus &= 0b01111111; // clears vblank flag
-            witppu->wreg = 0x00;             // reading PPUSTATUS clears the w register
-            return witppu->ppustatus;
+            cout << "CPU: TRYING TO READ FROM: PPUSTATUS" << endl;
+            latch = witppu->ppustatus; // latch fills with the data read.
+            // reading clears the vblank flag
+            witppu->ppustatus &= 0b01111111;
+            witppu->wreg = 0x00; // reading PPUSTATUS clears the w register
+            return latch;
         case 0x2003:
+            cout << "CPU: TRYING TO READ FROM: OAMADDR" << endl;
             return latch;
         case 0x2004:
+            cout << "CPU: TRYING TO READ FROM: OAMDATA" << endl;
             latch = witppu->oamdata; // fill latch w data
-            // TODO: Reads during vertical or forced blanking return the value from OAM at that address.
-
             return witppu->oamdata;
         case 0x2005:
-
+            cout << "CPU: TRYING TO READ FROM: PPUSCROLL" << endl;
             return latch;
         case 0x2006:
+        cout << "CPU: TRYING TO READ FROM: PPUADDR" << endl;
             return latch;
         case 0x2007:{
+            cout << "CPU: TRYING TO READ FROM: PPUDATA" << endl;
             uint8_t val = witppu->pdatabuf; // store old value somewhere
 
             witppu->ppudata = read_mem(witppu->vreg); // load new data in ppudata and in buf
@@ -82,9 +97,8 @@ uint8_t PPUBus::read_register(uint16_t addr)
             witppu->vreg += (witppu->ppuctrl & 0b00000100) ? 1 : 32; // 1 means go to next tile, 32 means go down a row in the current col
 
             latch = val;
-            return val;
+            return latch;
         }
-
         default:
             return latch;
         }
@@ -93,7 +107,7 @@ uint8_t PPUBus::read_register(uint16_t addr)
     else if (addr == 0x4014)
 
     {
-
+         cout << "CPU: TRYING TO READ FROM: OAMDMA" << endl;
         return latch;
     }
 
@@ -117,6 +131,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2000:
             if (cycles > 29658)
             {
+                cout << "CPU: TRYING TO WRITE TO: PPUCTRL" << endl;
                 witppu->ppuctrl = data;
                 witppu->treg = CAST_15((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); // set nametable bits of treg
                 latch = witppu->ppuctrl;
@@ -128,6 +143,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2001:
             if (cycles > 29658)
             {
+                cout << "CPU: TRYING TO WRITE TO: PPUMASK" << endl;
                 witppu->ppumask = data;
 
                 // every write to ppumask may change the rendering status
@@ -141,10 +157,12 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             break;
 
         case 0x2002:
+            cout << "CPU: TRYING TO WRITE TO: PPUSTATUS" << endl;
             latch = data;
             break;
 
         case 0x2003:
+            cout << "CPU: TRYING TO WRITE TO: OAMADDR" << endl;
             witppu->oamaddr = data;
             latch = witppu->oamaddr;
             break;
@@ -156,6 +174,8 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 // no writes to OAM allowed during rendering
                 break;
             }
+
+            cout << "CPU: TRYING TO WRITE TO: OAMDATA" << endl;
             witppu->oamdata = data;
             write_mem(witppu->oamaddr, data);
             latch = witppu->oamdata;
@@ -165,6 +185,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2005: // PPUSCROLL
             if (cycles > 29658)
             {
+                cout << "CPU: TRYING TO WRITE TO: PPUSCROLL" << endl;
 
                 witppu->ppuscroll = data;
                 if (witppu->wreg)
@@ -186,6 +207,8 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2006: // PPUADDR
             if (cycles > 29658)
             {
+
+                cout << "CPU: TRYING TO WRITE TO: PPUADDR" << endl;
 
                 witppu->ppuaddr = data;
 
@@ -209,6 +232,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
 
             // PPUDATA
         case 0x2007:
+            cout << "CPU: TRYING TO WRITE TO: PPUDATA" << endl;
 
             // only write when not rendering
             if ((!((witppu->ppumask) & 0b00010000) && !((witppu->ppumask) & 0b00001000)) || (witppu->scanline >= 241 && witppu->scanline <= 260))
@@ -235,6 +259,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2000:
             if (cycles > 29658)
             {
+                cout << "CPU: TRYING TO WRITE TO: PPUCTRL" << endl;
                 witppu->ppuctrl = data;
                 witppu->treg = CAST_15((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); // set nametable bits of treg
                 latch = witppu->ppuctrl;
@@ -246,6 +271,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2001:
             if (cycles > 29658)
             {
+                cout << "CPU: TRYING TO WRITE TO: PPUMASK" << endl;
                 witppu->ppumask = data;
 
                 // every write to ppumask may change the rendering status
@@ -259,10 +285,12 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             break;
 
         case 0x2002:
+            cout << "CPU: TRYING TO WRITE TO: PPUSTATUS" << endl;
             latch = data;
             break;
 
         case 0x2003:
+            cout << "CPU: TRYING TO WRITE TO: OAMADDR" << endl;
             witppu->oamaddr = data;
             latch = witppu->oamaddr;
             break;
@@ -274,6 +302,8 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 // no writes to OAM allowed during rendering
                 break;
             }
+
+            cout << "CPU: TRYING TO WRITE TO: OAMDATA" << endl;
             witppu->oamdata = data;
             write_mem(witppu->oamaddr, data);
             latch = witppu->oamdata;
@@ -283,6 +313,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2005: // PPUSCROLL
             if (cycles > 29658)
             {
+                cout << "CPU: TRYING TO WRITE TO: PPUSCROLL" << endl;
 
                 witppu->ppuscroll = data;
                 if (witppu->wreg)
@@ -304,6 +335,8 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2006: // PPUADDR
             if (cycles > 29658)
             {
+
+                cout << "CPU: TRYING TO WRITE TO: PPUADDR" << endl;
 
                 witppu->ppuaddr = data;
 
@@ -327,6 +360,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
 
             // PPUDATA
         case 0x2007:
+            cout << "CPU: TRYING TO WRITE TO: PPUDATA" << endl;
 
             // only write when not rendering
             if ((!((witppu->ppumask) & 0b00010000) && !((witppu->ppumask) & 0b00001000)) || (witppu->scanline >= 241 && witppu->scanline <= 260))

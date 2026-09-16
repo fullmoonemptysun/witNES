@@ -5,12 +5,14 @@
 #define CAST_14(x) ((x) & 0x3fff)
 #define CAST_5(x) ((x) & 0x1F)
 #define CAST_6(x) ((x) & 0x3F)
+#define RENDERING_ENABLE (sp_render_enable || bg_render_enable)
 
 #include <cstdint>
 
 #include <string>
 #include <vector>
 #include <array>
+#include "display.h"
 
 using namespace std;
 
@@ -19,35 +21,46 @@ class PPUBus;
 class ppu
 {
 public:
-    ppu(){};
-    ~ppu(){};
+    ppu(){
+
+        screen = new Display();
+        screen->create_display();
+        
+        
+    };
+    ~ppu(){
+        delete screen;
+    };
+
+
+    void reset();
 
     // registers
-    uint8_t ppuctrl;
-    uint8_t ppumask;
-    uint8_t ppustatus;
-    uint8_t oamaddr;
-    uint8_t oamdata;
-    uint8_t ppuscroll;
-    uint8_t ppuaddr;
-    uint8_t ppudata;
-    uint8_t pdatabuf; //buffer for ppudata (1 step slow writes)
-    uint8_t oamdma; // actually belongs to cpu
-    uint16_t vreg;
-    uint16_t treg;
-    uint8_t xreg_ppu;
-    uint8_t wreg;
+    uint8_t ppuctrl = 0;
+    uint8_t ppumask = 0;
+    uint8_t ppustatus = 0;
+    uint8_t oamaddr = 0;
+    uint8_t oamdata = 0;
+    uint8_t ppuscroll = 0;
+    uint8_t ppuaddr = 0;
+    uint8_t ppudata = 0;
+    uint8_t pdatabuf = 0; //buffer for ppudata (1 step slow writes)
+    uint8_t oamdma = 0; // actually belongs to cpu
+    uint16_t vreg = 0;
+    uint16_t treg = 0;
+    uint8_t xreg_ppu = 0;
+    uint8_t wreg = 0;
 
 
     // 3 shift registers
-    uint16_t shft_reg_hi;
-    uint16_t shft_reg_lo;
-    uint16_t attr_reg_hi;
-    uint16_t attr_reg_lo;
+    uint16_t shft_reg_hi = 0;
+    uint16_t shft_reg_lo = 0;
+    uint16_t attr_reg_hi = 0;
+    uint16_t attr_reg_lo = 0;
 
     // Rendering state variables
-    int scanline;
-    int dot;
+    int scanline = 0;
+    int dot = 0;
     bool bg_render_enable = false;
     bool sp_render_enable = false;
     uint8_t tile_no; //???
@@ -66,6 +79,8 @@ public:
         this->bus = b;
     }
 
+    Display* screen;
+
 private:
     
 
@@ -83,11 +98,11 @@ private:
 
     // frame bitmap
     
-    vector<vector<uint8_t>> frame = vector<vector<uint8_t>>(61440, std::vector<uint8_t>(3, 0));
+    vector<array<uint8_t, 3>> frame = vector<array<uint8_t, 3>>(61440, {0,0,0});
     
 
     //master palette
-    vector<vector<uint8_t>> mpallette = {{
+    vector<array<uint8_t, 3>> mpallette = {{
         {66, 71, 74},{0, 10, 114},{6, 0, 133},{42, 0, 120},{68, 0, 78},{79, 0, 17},{72, 0, 0},{48, 11, 0},
 
         {14, 32, 0},{0, 47, 0},{0, 53, 0},{0, 46, 4},{0, 30, 66},{0, 30, 66},{0, 30, 66},{0, 30, 66},

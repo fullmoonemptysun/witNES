@@ -3,23 +3,27 @@
 
 #include <cstdint>
 #include <vector>
+#include <SDL2/SDL.h>
+#include <array>
 
+class Display
+{
 
-class Display {
+public:
 
-    public:
-        void create_display();
-        void close_display();
-        void refresh_frame(std::vector<std::vector<uint8_t>>&); //takes the 256x240 pixel array.
-        
+    Display(){
 
-    private:
+    }
+    void create_display();
+    void close_display();
+    void refresh_frame(std::vector<std::array<uint8_t, 3>> &); // takes the 256x240 pixel array.
+    std::vector<uint8_t> currFrame = std::vector<uint8_t>((61440 * 3), 0);
 
-     
-
+private:
+    SDL_Surface *winSurface = NULL;
+    SDL_Window *window = NULL;
+    SDL_Renderer *renderer = NULL;
+    SDL_Texture *texture = NULL;
 };
-
-
-
 
 #endif

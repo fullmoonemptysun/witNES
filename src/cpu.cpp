@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <iostream>
+
 #include "Bus.h"
 #include "disasm.h"
 
@@ -46,8 +47,8 @@ void cpu::reset(){
     xreg = 0x00;
     yreg = 0x00;
     stkp = 0xfd; //stack pointer
-    // pc = read(0xFFFC)|(read(0xFFFD) << 8); correct way
-    pc = 0xC000; // to test nestest HARDCODED
+    pc = read(0xFFFC)|(read(0xFFFD) << 8); 
+    // pc = 0xC000; // to test nestest HARDCODED
     status = 0b00100100;
 }
 
@@ -102,6 +103,9 @@ void cpu::clock(){
         cout << ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << endl;
 
         dislog.bytes.clear();
+
+        bus->memdmp << ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << endl;
+        bus->stackdump();
 
         //-----------------
 
@@ -212,7 +216,7 @@ uint8_t cpu::REL()
 {
     // the next byte after opcode is the 8 bit signed offset
 
-    int offset = read(pc);
+    int offset = (int8_t)(read(pc)); // BIG BUG: MUST CONVERT OFFSET TO SIGNED. Making it wider to int only zero extends, does not reinterpret the signedness
     pc++;
     addr_main = pc + offset;
 
