@@ -10,34 +10,35 @@ uint8_t PPUBus::read_register(uint16_t addr)
         switch (addr)
         {
         case 0x2000:
-            //debug 
-            cout << "CPU: TRYING TO READ FROM: PPUCTRL" << endl;
+            // debug
+            //cout << "CPU: TRYING TO READ FROM: PPUCTRL" << endl;
             return latch;
         case 0x2001:
-        cout << "CPU: TRYING TO READ FROM: PPUMASK" << endl;
+            //cout << "CPU: TRYING TO READ FROM: PPUMASK" << endl;
             return latch;
         case 0x2002:
-            cout << "CPU: TRYING TO READ FROM: PPUSTATUS" << endl;
+            //cout << "CPU: TRYING TO READ FROM: PPUSTATUS" << endl;
             latch = witppu->ppustatus; // latch fills with the data read.
             // reading clears the vblank flag
             witppu->ppustatus &= 0b01111111;
             witppu->wreg = 0x00; // reading PPUSTATUS clears the w register
             return latch;
         case 0x2003:
-            cout << "CPU: TRYING TO READ FROM: OAMADDR" << endl;
+            //cout << "CPU: TRYING TO READ FROM: OAMADDR" << endl;
             return latch;
         case 0x2004:
-            cout << "CPU: TRYING TO READ FROM: OAMDATA" << endl;
+            //cout << "CPU: TRYING TO READ FROM: OAMDATA" << endl;
             latch = witppu->oamdata; // fill latch w data
             return witppu->oamdata;
         case 0x2005:
-            cout << "CPU: TRYING TO READ FROM: PPUSCROLL" << endl;
+            //cout << "CPU: TRYING TO READ FROM: PPUSCROLL" << endl;
             return latch;
         case 0x2006:
-        cout << "CPU: TRYING TO READ FROM: PPUADDR" << endl;
+            //cout << "CPU: TRYING TO READ FROM: PPUADDR" << endl;
             return latch;
-        case 0x2007:{
-            cout << "CPU: TRYING TO READ FROM: PPUDATA" << endl;
+        case 0x2007:
+        {
+            //cout << "CPU: TRYING TO READ FROM: PPUDATA" << endl;
             uint8_t val = witppu->pdatabuf; // store old value somewhere
 
             witppu->ppudata = read_mem(witppu->vreg); // load new data in ppudata and in buf
@@ -45,6 +46,8 @@ uint8_t PPUBus::read_register(uint16_t addr)
 
             // increment v
             witppu->vreg += (witppu->ppuctrl & 0b00000100) ? 1 : 32; // 1 means go to next tile, 32 means go down a row in the current col
+            witppu->vreg = CAST_15(witppu->vreg); // vreg must remain 15 bits wide 
+
 
             latch = val;
             return latch;
@@ -60,34 +63,35 @@ uint8_t PPUBus::read_register(uint16_t addr)
         switch (tmpaddr)
         {
         case 0x2000:
-            //debug 
-            cout << "CPU: TRYING TO READ FROM: PPUCTRL" << endl;
+            // debug
+            //cout << "CPU: TRYING TO READ FROM: PPUCTRL" << endl;
             return latch;
         case 0x2001:
-        cout << "CPU: TRYING TO READ FROM: PPUMASK" << endl;
+            //cout << "CPU: TRYING TO READ FROM: PPUMASK" << endl;
             return latch;
         case 0x2002:
-            cout << "CPU: TRYING TO READ FROM: PPUSTATUS" << endl;
+            //cout << "CPU: TRYING TO READ FROM: PPUSTATUS" << endl;
             latch = witppu->ppustatus; // latch fills with the data read.
             // reading clears the vblank flag
             witppu->ppustatus &= 0b01111111;
             witppu->wreg = 0x00; // reading PPUSTATUS clears the w register
             return latch;
         case 0x2003:
-            cout << "CPU: TRYING TO READ FROM: OAMADDR" << endl;
+            //cout << "CPU: TRYING TO READ FROM: OAMADDR" << endl;
             return latch;
         case 0x2004:
-            cout << "CPU: TRYING TO READ FROM: OAMDATA" << endl;
+            //cout << "CPU: TRYING TO READ FROM: OAMDATA" << endl;
             latch = witppu->oamdata; // fill latch w data
             return witppu->oamdata;
         case 0x2005:
-            cout << "CPU: TRYING TO READ FROM: PPUSCROLL" << endl;
+            //cout << "CPU: TRYING TO READ FROM: PPUSCROLL" << endl;
             return latch;
         case 0x2006:
-        cout << "CPU: TRYING TO READ FROM: PPUADDR" << endl;
+            //cout << "CPU: TRYING TO READ FROM: PPUADDR" << endl;
             return latch;
-        case 0x2007:{
-            cout << "CPU: TRYING TO READ FROM: PPUDATA" << endl;
+        case 0x2007:
+        {
+            //cout << "CPU: TRYING TO READ FROM: PPUDATA" << endl;
             uint8_t val = witppu->pdatabuf; // store old value somewhere
 
             witppu->ppudata = read_mem(witppu->vreg); // load new data in ppudata and in buf
@@ -107,14 +111,14 @@ uint8_t PPUBus::read_register(uint16_t addr)
     else if (addr == 0x4014)
 
     {
-         cout << "CPU: TRYING TO READ FROM: OAMDMA" << endl;
+        //cout << "CPU: TRYING TO READ FROM: OAMDMA" << endl;
         return latch;
     }
 
     else
     {
 
-        cout << "READING OUT OF PPU MMIO RANGE!!!" << endl;
+        //cout << "READING OUT OF PPU MMIO RANGE!!!" << endl;
 
         return 0;
     }
@@ -131,7 +135,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2000:
             if (cycles > 29658)
             {
-                cout << "CPU: TRYING TO WRITE TO: PPUCTRL" << endl;
+                //cout << "CPU: TRYING TO WRITE TO: PPUCTRL" << endl;
                 witppu->ppuctrl = data;
                 witppu->treg = CAST_15((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); // set nametable bits of treg
                 latch = witppu->ppuctrl;
@@ -143,7 +147,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2001:
             if (cycles > 29658)
             {
-                cout << "CPU: TRYING TO WRITE TO: PPUMASK" << endl;
+                //cout << "CPU: TRYING TO WRITE TO: PPUMASK" << endl;
                 witppu->ppumask = data;
 
                 // every write to ppumask may change the rendering status
@@ -157,12 +161,12 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             break;
 
         case 0x2002:
-            cout << "CPU: TRYING TO WRITE TO: PPUSTATUS" << endl;
+            //cout << "CPU: TRYING TO WRITE TO: PPUSTATUS" << endl;
             latch = data;
             break;
 
         case 0x2003:
-            cout << "CPU: TRYING TO WRITE TO: OAMADDR" << endl;
+            //cout << "CPU: TRYING TO WRITE TO: OAMADDR" << endl;
             witppu->oamaddr = data;
             latch = witppu->oamaddr;
             break;
@@ -175,7 +179,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 break;
             }
 
-            cout << "CPU: TRYING TO WRITE TO: OAMDATA" << endl;
+            //cout << "CPU: TRYING TO WRITE TO: OAMDATA" << endl;
             witppu->oamdata = data;
             write_mem(witppu->oamaddr, data);
             latch = witppu->oamdata;
@@ -185,7 +189,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2005: // PPUSCROLL
             if (cycles > 29658)
             {
-                cout << "CPU: TRYING TO WRITE TO: PPUSCROLL" << endl;
+                //cout << "CPU: TRYING TO WRITE TO: PPUSCROLL" << endl;
 
                 witppu->ppuscroll = data;
                 if (witppu->wreg)
@@ -208,7 +212,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             if (cycles > 29658)
             {
 
-                cout << "CPU: TRYING TO WRITE TO: PPUADDR" << endl;
+                //cout << "CPU: TRYING TO WRITE TO: PPUADDR" << endl;
 
                 witppu->ppuaddr = data;
 
@@ -232,7 +236,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
 
             // PPUDATA
         case 0x2007:
-            cout << "CPU: TRYING TO WRITE TO: PPUDATA" << endl;
+            //cout << "CPU: TRYING TO WRITE TO: PPUDATA" << endl;
 
             // only write when not rendering
             if ((!((witppu->ppumask) & 0b00010000) && !((witppu->ppumask) & 0b00001000)) || (witppu->scanline >= 241 && witppu->scanline <= 260))
@@ -241,7 +245,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 write_mem(witppu->vreg, data); // write to the address in v.
                 // increment v
                 witppu->vreg += (witppu->ppuctrl & 0b00000100) ? 1 : 32; // 1 means go to next tile, 32 means go down a row in the current col
-
+                witppu->vreg = CAST_15(witppu->vreg); // vreg must remain 15 bits wide 
                 latch = witppu->ppudata;
             }
 
@@ -259,7 +263,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2000:
             if (cycles > 29658)
             {
-                cout << "CPU: TRYING TO WRITE TO: PPUCTRL" << endl;
+                //cout << "CPU: TRYING TO WRITE TO: PPUCTRL" << endl;
                 witppu->ppuctrl = data;
                 witppu->treg = CAST_15((witppu->treg & 0b111001111111111) | (((witppu->ppuctrl) << 10) & 0b000110000000000)); // set nametable bits of treg
                 latch = witppu->ppuctrl;
@@ -271,7 +275,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2001:
             if (cycles > 29658)
             {
-                cout << "CPU: TRYING TO WRITE TO: PPUMASK" << endl;
+                //cout << "CPU: TRYING TO WRITE TO: PPUMASK" << endl;
                 witppu->ppumask = data;
 
                 // every write to ppumask may change the rendering status
@@ -285,12 +289,12 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             break;
 
         case 0x2002:
-            cout << "CPU: TRYING TO WRITE TO: PPUSTATUS" << endl;
+            //cout << "CPU: TRYING TO WRITE TO: PPUSTATUS" << endl;
             latch = data;
             break;
 
         case 0x2003:
-            cout << "CPU: TRYING TO WRITE TO: OAMADDR" << endl;
+            //cout << "CPU: TRYING TO WRITE TO: OAMADDR" << endl;
             witppu->oamaddr = data;
             latch = witppu->oamaddr;
             break;
@@ -303,7 +307,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
                 break;
             }
 
-            cout << "CPU: TRYING TO WRITE TO: OAMDATA" << endl;
+            //cout << "CPU: TRYING TO WRITE TO: OAMDATA" << endl;
             witppu->oamdata = data;
             write_mem(witppu->oamaddr, data);
             latch = witppu->oamdata;
@@ -313,7 +317,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
         case 0x2005: // PPUSCROLL
             if (cycles > 29658)
             {
-                cout << "CPU: TRYING TO WRITE TO: PPUSCROLL" << endl;
+                //cout << "CPU: TRYING TO WRITE TO: PPUSCROLL" << endl;
 
                 witppu->ppuscroll = data;
                 if (witppu->wreg)
@@ -336,7 +340,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
             if (cycles > 29658)
             {
 
-                cout << "CPU: TRYING TO WRITE TO: PPUADDR" << endl;
+                //cout << "CPU: TRYING TO WRITE TO: PPUADDR" << endl;
 
                 witppu->ppuaddr = data;
 
@@ -360,7 +364,7 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
 
             // PPUDATA
         case 0x2007:
-            cout << "CPU: TRYING TO WRITE TO: PPUDATA" << endl;
+            //cout << "CPU: TRYING TO WRITE TO: PPUDATA" << endl;
 
             // only write when not rendering
             if ((!((witppu->ppumask) & 0b00010000) && !((witppu->ppumask) & 0b00001000)) || (witppu->scanline >= 241 && witppu->scanline <= 260))
@@ -379,30 +383,71 @@ void PPUBus::write_register(uint16_t addr, uint8_t data, uint16_t cycles)
 
     else if (addr == 0x4014)
     {
-        cout << "[INFO] OAMDMA HAPPENED" << endl;
+        //cout << "[INFO] OAMDMA HAPPENED" << endl;
     }
 
     else
     {
 
-        cout << "WRITING OUT OF PPU MMIO RANGE!!!" << endl;
+        //cout << "WRITING OUT OF PPU MMIO RANGE!!!" << endl;
     }
 }
 
 // memory operations (PPU <-> MEMORY)
 
-uint8_t PPUBus ::read_mem(uint16_t addr)
+uint8_t PPUBus::read_mem(uint16_t add)
 {
+
+
+    uint16_t addr = CAST_14(add);
     // nametable
-    if (addr >= 0x2000 && addr <= 0x27ff)
+    if (addr >= 0x2000 && addr <= 0x2fff)
     {
-        return vram[addr - 0x2000];
+
+        // horizontal mirroring
+        if (this->mainbus->cart->mirroring)
+        {
+            if ((addr >= 0x2800))
+            {
+                return vram[addr - 0x800];
+            }
+
+            else
+            {
+                return vram[addr];
+            }
+        }
+
+        else
+        {
+            // vertical mirroring
+            if ((addr >= 0x2400 && addr < 0x2c00))
+            {
+                return vram[addr - 0x400];
+            }
+
+            else if (addr >= 0x2c00)
+            {
+                return vram[addr - 0x800];
+            }
+
+            else
+            {
+                return vram[addr];
+            }
+        }
     }
 
     // pattern table
     else if (addr >= 0x0000 && addr <= 0x1fff)
     {
         return mainbus->cart->ppu_read(addr);
+    }
+
+    else if (addr >= 0x3000 && addr <= 0x3eff)
+    {
+        //cout << "READING FROM UNUSED MEMORY" << endl;
+        return read_mem((addr - 0x1000));
     }
 
     // pallette mirror
@@ -434,17 +479,57 @@ uint8_t PPUBus ::read_mem(uint16_t addr)
 
     else
     {
-        cout << "ERROR: TRYING TO READ OUT OF PPU MEMORY SPACE" << endl;
+        //cout << "ERROR: TRYING TO READ OUT OF PPU MEMORY SPACE" << endl;
+
         exit(-1);
     }
 }
 
-void PPUBus ::write_mem(uint16_t addr, uint8_t data)
+void PPUBus::write_mem(uint16_t add, uint8_t data)
 {
+
+    uint16_t addr = CAST_14(add); //ensure the address is wrapped around to 14 bits
     // vram
-    if (addr >= 0x2000 && addr <= 0x27ff)
+    if (addr >= 0x2000 && addr <= 0x2fff)
     {
-        vram[addr - 0x2000] = data;
+
+        // horizontal mirroring
+        if (this->mainbus->cart->mirroring)
+        {
+
+            // debug
+            //cout << "HORIZONTAL MIRRORING DETECTED\n";
+            if ((addr >= 0x2800))
+            {
+                vram[addr - 0x800] = data;
+            }
+
+            else
+            {
+                vram[addr] = data;
+            }
+        }
+
+        else
+        {
+            // vertical mirroring
+            // debug
+            //cout << "VERTICAL MIRRORING\n";
+            if ((addr >= 0x2400 && addr < 0x2c00))
+            {
+                vram[addr - 0x400] = data;
+            }
+
+            else if (addr >= 0x2c00)
+            {
+                vram[addr - 0x800] = data;
+            }
+
+            else
+            {
+                vram[addr] = data;
+            }
+        }
     }
 
     else if (addr >= 0x3f00 && addr <= 0x3f1f)
@@ -473,15 +558,26 @@ void PPUBus ::write_mem(uint16_t addr, uint8_t data)
         }
     }
 
+        // pattern table
+    else if (addr >= 0x0000 && addr <= 0x1fff)
+    {
+        //chr-rom read only.
+    }
     // pallette mirror
     else if (addr >= 0x3f20 && addr <= 0x3fff)
     {
         write_mem(((addr & 0x1F) + 0x3f00), data);
     }
 
+    else if (addr >= 0x3000 && addr <= 0x3eff)
+    {
+        //cout << "READING FROM UNUSED MEMORY" << endl;
+        write_mem((addr - 0x1000), data);
+    }
+
     else
     {
-        cout << "ERROR: TRYING TO WRITE OUTSIDE OF PPU ADDR SPACE!!!" << endl;
+        //cout << "ERROR: TRYING TO WRITE OUTSIDE OF PPU ADDR SPACE!!!" << endl;
         exit(-1);
     }
 }

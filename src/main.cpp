@@ -17,25 +17,32 @@ int main(int argc, char const *argv[])
     // cout << "BUS,CART,CPU CREATED, STARTING CPU" << endl;
     // cout << toHex(cpubus->witcpu->pc) << endl;
     // while(cpubus->witcpu->pc < 0xc700){
+    int count = 0;
 
     while (true)
     {
 
         // cout << "ENTERED LOOP" <<'\n';
-        // cpubus->ppub->witppu->clock();
-        // cpubus->ppub->witppu->clock();
-        // cpubus->ppub->witppu->clock();
+        cpubus->ppub->witppu->clock();
+        cpubus->ppub->witppu->clock();
+        cpubus->ppub->witppu->clock();
         cpubus->witcpu->clock();
+        count += 1;
 
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
+        if (count == 20500)
         {
-            if (event.type == SDL_QUIT)
+            SDL_Event event;
+            while (SDL_PollEvent(&event))
             {
-                // handle quit
+                if (event.type == SDL_QUIT)
+                {
+                    // handle quit
 
-                exit(-2);
+                    exit(-2);
+                }
             }
+
+            count = 0;
         }
     }
 

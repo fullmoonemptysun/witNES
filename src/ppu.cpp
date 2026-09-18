@@ -17,7 +17,7 @@ using namespace std;
 void ppu::reset()
 {
     // debug
-    cout << "RESETTING PPU" << endl;
+    //cout << "RESETTING PPU" << endl;
 
     ppuctrl = 0;
     ppustatus = 0;
@@ -38,23 +38,23 @@ uint8_t ppu::read(uint16_t addr)
 {
 
     // debug
-    cout << "PPU READING FROM MEM addr: " << toHex((uint16_t)addr) << '\n';
+    //cout << "PPU READING FROM MEM addr: " << toHex((uint16_t)addr) << '\n';
     return bus->read_mem(addr);
 }
 
 void ppu::write(uint16_t addr, uint8_t data)
 {
     // debug
-    cout << "PPU Writing to MEM addr: " << toHex((uint16_t)addr) << ", ";
+    //cout << "PPU Writing to MEM addr: " << toHex((uint16_t)addr) << ", ";
     // debug
-    cout << "PPU Writing to MEM data: " << toHex((uint8_t)data) << '\n';
+    //cout << "PPU Writing to MEM data: " << toHex((uint8_t)data) << '\n';
     bus->write_mem(addr, data);
 }
 
 uint8_t ppu::read_nt(int index)
 {
 
-    cout << "PPU READING NAMETABLE" << endl;
+    //cout << "PPU READING NAMETABLE" << endl;
 
     uint8_t base_nt_addr = (vreg & 0xc00) >> 10;
 
@@ -75,7 +75,7 @@ uint8_t ppu::read_nt(int index)
             return read(0x2400 + index);
 
         default:
-            std::cout << "ERROR: READ_NT" << '\n';
+            cout << "ERROR: READ_NT" << '\n';
             return -1;
         }
     }
@@ -96,7 +96,7 @@ uint8_t ppu::read_nt(int index)
             return read(0x2400 + index);
 
         default:
-            std::cout << "ERROR: READ_NT" << '\n';
+            cout << "ERROR: READ_NT" << '\n';
             return -1;
         }
     }
@@ -126,7 +126,7 @@ uint8_t ppu::read_at(int index)
             return read(0x27c0 + index);
 
         default:
-            std::cout << "ERROR: READ_at" << '\n';
+            cout << "ERROR: READ_at" << '\n';
             return -1;
         }
     }
@@ -147,7 +147,7 @@ uint8_t ppu::read_at(int index)
             return read(0x27c0 + index);
 
         default:
-            std::cout << "ERROR: READ_aT" << '\n';
+            cout << "ERROR: READ_aT" << '\n';
             return -1;
         }
     }
@@ -172,9 +172,10 @@ uint16_t ppu::read_pt(int tileno)
 void ppu::clock()
 {
 
-    // debug
-    std::cout << "PPU_TICK: ["<<"SC:" << scanline << " DOT: " << dot << " ]" << '\n';
-    std::cout << "REGS: " "[" << " PPUCTRL:" << toHex(ppuctrl) << " |" << " PPUSTATUS:" << toHex(ppustatus) << " |" << " PPUMASK:" << toHex(ppumask) << " |" << " PPUSCROLL:" << toHex(ppuscroll) << " |" << " PPUADDR:" << toHex(ppuaddr) << " |" << " PPUDATA:" << toHex(ppudata) << " |" << " OAMADDR:" << toHex(oamaddr) << " |" <<   "]" << "\n\n" << endl;
+    // // debug
+    // cout << "PPU_TICK: ["<<"SC:" << scanline << " DOT: " << dot << " ]" << '\n';
+    // cout << "REGS: " "[" << " PPUCTRL:" << toHex(ppuctrl) << " |" << " PPUSTATUS:" << toHex(ppustatus) << " |" << " PPUMASK:" << toHex(ppumask) << " |" << " PPUSCROLL:" << toHex(ppuscroll) << " |" << " PPUADDR:" << toHex(ppuaddr) << " |" << " PPUDATA:" << toHex(ppudata) << " |" << " OAMADDR:" << toHex(oamaddr) << " |" <<   "]" << "\n";
+    // cout << "V: " << toHex(vreg) << " | " << "t: " << toHex(treg)<< " | " <<  "w: " << toHex(wreg) << "\n\n";
     // debug
     
 
@@ -182,7 +183,7 @@ void ppu::clock()
     if ((scanline >= 0 && scanline <= 239) && dot == 0)
     {
         // debug
-        cout << "PPU: ENTERED DOT 1 of RENDERING(IDLE CYCLE)" << '\n';
+        //cout << "PPU: ENTERED DOT 1 of RENDERING(IDLE CYCLE)" << '\n';
         dot += 1;
     }
 
@@ -190,7 +191,7 @@ void ppu::clock()
     else if ((scanline >= 0 && scanline <= 239) && (1 <= dot && dot <= 256))
     {
         // debug
-        cout << "PPU: ENTERED RENDERING PHASE (DISABLED)" << endl;
+        //cout << "PPU: ENTERED RENDERING PHASE (DISABLED)" << endl;
         dot += 1;
     }
 
@@ -199,7 +200,7 @@ void ppu::clock()
     {
 
         // debug
-        cout << "PPU: ENTERED RENDERING PHASE" << '\n';
+        //cout << "PPU: ENTERED RENDERING PHASE" << '\n';
         // render current dot first
 
         // calculate bgpx
@@ -225,7 +226,7 @@ void ppu::clock()
         case (1):
         {
             // debug
-            cout << "PPU: RENDERING BG for CURRENT PX (RGB: ";
+            //cout << "PPU: RENDERING BG for CURRENT PX (RGB: ";
             uint8_t curr_px_idx = read(0x3f00 + bgpxaddr); // 6 bit
             // sdl2 rendering pipeline.
             // grab the rgb from master pallette
@@ -234,23 +235,23 @@ void ppu::clock()
             // debug
             for (int i = 0; i < 3; i++)
             {
-                cout << "0x" << toHex((uint8_t)frame[scanline * 256 + (dot - 1)][i]) << ", ";
+                //cout << "0x" << toHex((uint8_t)frame[scanline * 256 + (dot - 1)][i]) << ", ";
             }
-            cout << endl;
+            //cout << endl;
 
             break;
         }
         case (2):
             // debug
-            cout << "PPU: RENDERING EXT for CURRENT PX (RGB: ";
+            //cout << "PPU: RENDERING EXT for CURRENT PX (RGB: ";
             frame[scanline * 256 + (dot - 1)] = mpallette[read(0x3f00)]; // EXT color
 
             // debug
             for (int i = 0; i < 3; i++)
             {
-                cout << "0x" << toHex((uint8_t)frame[scanline * 256 + (dot - 1)][i]) << ", ";
+                //cout << "0x" << toHex((uint8_t)frame[scanline * 256 + (dot - 1)][i]) << ", ";
             }
-            cout << endl;
+            //cout << endl;
             break;
         }
 
@@ -259,7 +260,7 @@ void ppu::clock()
         {
 
             // debug
-            cout << "AT 8 DOT BOUNDARY DURING RENDERING. FETCHING VALUES..." << '\n';
+            //cout << "AT 8 DOT BOUNDARY DURING RENDERING. FETCHING VALUES..." << '\n';
             // inc. hor(v)
             int coarse_x = vreg & 0x1F;
             // out of nametable boundary horizontally
@@ -284,7 +285,7 @@ void ppu::clock()
             shft_reg_lo |= (ptdata & 0x00ff);
 
             // debugging
-            std::cout << "0x" << toHex(tileno) << endl;
+            //cout << "0x" << toHex(tileno) << endl;
 
             // at fetch
             uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
@@ -309,7 +310,8 @@ void ppu::clock()
                 break;
             default:
                 // debug
-                std::cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                //cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                break;
             }
         }
 
@@ -353,7 +355,7 @@ void ppu::clock()
     {
 
         // debug
-        cout << "ENTERED POST RENDER CYCLE - RENDERING PHASE (>256)" << endl;
+        //cout << "ENTERED POST RENDER CYCLE - RENDERING PHASE (>256)" << endl;
 
         // debug
         if (dot == 257 && RENDERING_ENABLE)
@@ -365,7 +367,7 @@ void ppu::clock()
 
             // return the horizontal n table bit and coarse_x to v from t. (Horizontal reset)
             vreg = CAST_15((vreg & 0xFBE0) | (treg & 0x041f)); // clear namtable bit and coarse_x
-            cout << "HORIZONTAL V RESTORED" << endl;
+            //cout << "HORIZONTAL V RESTORED" << endl;
         }
 
         dot += 1;
@@ -376,7 +378,7 @@ void ppu::clock()
 
         if ((sp_render_enable || bg_render_enable))
         {
-            cout << "ENTERED POST RENDER CYCLES - DOING 2 FETCHES FOR NEXT SCANLINE" << endl;
+            //cout << "ENTERED POST RENDER CYCLES - DOING 2 FETCHES FOR NEXT SCANLINE" << endl;
 
             if (dot == 321)
             {
@@ -391,7 +393,7 @@ void ppu::clock()
                 shft_reg_lo = ((ptdata & 0x00ff) << 8);
 
                 // debugging
-                std::cout << "0x" << toHex(tileno) << endl;
+                //cout << "0x" << toHex(tileno) << endl;
 
                 // at fetch
                 uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
@@ -416,7 +418,8 @@ void ppu::clock()
                     break;
                 default:
                     // debug
-                    std::cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                    //cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                    break;
                 }
             }
 
@@ -447,7 +450,7 @@ void ppu::clock()
                 shft_reg_lo |= (ptdata & 0x00ff);
 
                 // debugging
-                std::cout << "0x" << toHex(tileno) << endl;
+                //cout << "0x" << toHex(tileno) << endl;
 
                 // at fetch
                 uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
@@ -472,7 +475,8 @@ void ppu::clock()
                     break;
                 default:
                     // debug
-                    std::cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                    //cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                    break;
                 }
             }
         }
@@ -480,7 +484,7 @@ void ppu::clock()
         else
         {
             // debug
-            cout << "ENTERED POST RENDER CYCLES - NOFETCH (R_DISABLED)" << endl;
+            //cout << "ENTERED POST RENDER CYCLES - NOFETCH (R_DISABLED)" << endl;
             // do 1st set of fetches here
         }
         // rest of the dots are idle
@@ -490,7 +494,7 @@ void ppu::clock()
     else if ((scanline >= 0 && scanline <= 239) && (337 <= dot && dot <= 339))
     {
         // debug
-        cout << "ENTERED GARBAGE POST RENDER CYCLES 337-340" << endl;
+        //cout << "ENTERED GARBAGE POST RENDER CYCLES 337-340" << endl;
         dot += 1;
     }
 
@@ -498,7 +502,7 @@ void ppu::clock()
     {
 
         // debug
-        cout << "ENTERED LAST CYCLE NOT THE END" << endl;
+        //cout << "ENTERED LAST CYCLE NOT THE END" << endl;
 
         // reset rendering variables
         dot = 0;
@@ -510,19 +514,19 @@ void ppu::clock()
     {
 
         // debug
-        cout << "ENTERED PRERENDER SCANLINE (261) - ";
+        //cout << "ENTERED PRERENDER SCANLINE (261) - ";
 
         if (dot < 340)
         {
 
             // debug
-            cout << " NOT THE LAST CYCLE" << endl;
+            //cout << " NOT THE LAST CYCLE" << endl;
             // random dot chosen to update state for next frame
             if (dot == 280 && RENDERING_ENABLE)
             {
 
                 // debug
-                cout << "DOING FIRST FETCH FOR THE NEXT FRAME" << endl;
+                //cout << "DOING FIRST FETCH FOR THE NEXT FRAME" << endl;
                 vreg = treg; // put scroll value in v
 
                 // nt fetch
@@ -535,7 +539,7 @@ void ppu::clock()
                 shft_reg_lo = ((ptdata & 0x00ff) << 8);
 
                 // debugging
-                std::cout << "0x" << toHex(tileno) << endl;
+                //cout << "0x" << toHex(tileno) << endl;
 
                 // at fetch
                 uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
@@ -560,7 +564,8 @@ void ppu::clock()
                     break;
                 default:
                     // debug
-                    std::cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                    //cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                    break;
                 }
             }
 
@@ -569,7 +574,7 @@ void ppu::clock()
             {
 
                 // debug
-                cout << "DOING 2nd FETCHES for THE NEXT SCANLINE" << endl;
+                //cout << "DOING 2nd FETCHES for THE NEXT SCANLINE" << endl;
                 // inc. hor(v)
                 int coarse_x = vreg & 0x1F;
 
@@ -597,7 +602,7 @@ void ppu::clock()
                 shft_reg_lo |= (ptdata & 0x00ff);
 
                 // debugging
-                std::cout << "0x" << toHex(tileno) << endl;
+                //cout << "0x" << toHex(tileno) << endl;
 
                 // at fetch
                 uint8_t at_byte = read_at(((vreg >> 4) & 0x38) | ((vreg >> 2) & 0x07));
@@ -623,7 +628,8 @@ void ppu::clock()
                     break;
                 default:
                     // debug
-                    std::cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                    //cout << "ERROR in SELECTING ATTRIBUTE CORNER" << endl;
+                    break;
                 }
             }
             dot += 1;
@@ -632,7 +638,7 @@ void ppu::clock()
         else
         {
             // debug
-            cout << " LAST CYCLE (FRAME RESET)" << endl;
+            //cout << " LAST CYCLE (FRAME RESET)" << endl;
             // reset rendering variables
             dot = 0;
             scanline = 0;
@@ -645,12 +651,12 @@ void ppu::clock()
     {
 
         // debug
-        cout << "ENTERED POSTSCANLINE (SKIPPED)" << endl;
+        //cout << "ENTERED POSTSCANLINE (SKIPPED)" << endl;
 
         if (dot == 2)
         {
             // debug
-            cout << "PUSHING FRAME CURRENT FRAME OUT" << endl;
+            //cout << "PUSHING CURRENT FRAME OUT" << endl;
             this->screen->refresh_frame(frame);
         }
 
@@ -661,8 +667,10 @@ void ppu::clock()
     else if (scanline >= 241 && scanline <= 260)
     {
 
+        
+
         //debug
-        cout << "ENTERED VBLANK" << endl;
+        //cout << "ENTERED VBLANK" << endl;
 
 
         // check if vblank enbabled
@@ -671,13 +679,13 @@ void ppu::clock()
         {
             ppustatus |= 0b10000000; // set vblank flag
             //debug 
-            cout << "VBLANK FLAG SET IN PPUSTATUS";
+            //cout << "VBLANK FLAG SET IN PPUSTATUS";
 
             if ((ppuctrl & 0b10000000))
             {
 
                 //debug
-                cout << "NMI ENABLED!: FIRE" << endl;
+                //cout << "NMI ENABLED!: FIRE" << '\n';
                 bus->mainbus->witcpu->nmi_due = true;
             }
         }
@@ -685,6 +693,8 @@ void ppu::clock()
         else if (scanline == 260 && dot == 1)
         {
             ppustatus &= 0b01111111;
+            vblank_cycles += 1;
+            cout << "COMPLETED VBLANK CYCLES: " << vblank_cycles << '\n';
         }
 
         dot += 1;

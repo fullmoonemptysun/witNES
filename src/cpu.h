@@ -162,10 +162,10 @@ private:
     //pushes a value to the stkp
     void push(uint8_t value){
         uint16_t addr = 0x0100 + stkp;
-        cout << "PUSHING TO: 0x" << toHex((uint16_t) addr) << endl;
+        // cout << "PUSHING TO: 0x" << toHex((uint16_t) addr) << endl;
         
         write(addr, value);
-        cout << "PUSHED VALUE: 0x" << toHex((uint8_t) value) << endl;
+        // cout << "PUSHED VALUE: 0x" << toHex((uint8_t) value) << endl;
 
         stkp--; //stack grows downwards.
     }
@@ -174,9 +174,9 @@ private:
     uint8_t pop(){
         stkp++;
         uint16_t addr = 0x0100 + stkp;
-        cout << "POPPING FROM: 0x" << toHex((uint16_t) addr) << endl;
+        // cout << "POPPING FROM: 0x" << toHex((uint16_t) addr) << endl;
         uint8_t result = read(addr);
-        cout << "POPPED VALUE: 0x" << toHex((uint8_t) result) << endl;
+        // cout << "POPPED VALUE: 0x" << toHex((uint8_t) result) << endl;
     
         return result;
     }
