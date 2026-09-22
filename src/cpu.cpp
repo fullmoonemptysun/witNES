@@ -96,17 +96,19 @@ void cpu::clock(){
         
         //disassembly------
 
-        // cout << dislog.addr << "  ";
+        // cout<< dislog.addr << "  ";
         // bus->memdmp << dislog.addr << "  ";
-        // for(string &str:dislog.bytes){
-        //     cout << str;
-        //     bus->memdmp << str;
-        // }
-        // cout << ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << endl;
+        for(string &str:dislog.bytes){
+            // cout<< str;
+            // bus->memdmp << str;
+        }
+        // cout<< ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << '\n';
 
         dislog.bytes.clear();
 
         // bus->memdmp << ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << endl;
+
+        
         // bus->stackdump();
 
         //-----------------

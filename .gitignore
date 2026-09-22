@@ -1,5 +1,4 @@
-display/.vscode/
-.vscode/
-logs.txt
-logs_no_ppu.txt
+.vscode
+massif.out.*
+log*
 memdump

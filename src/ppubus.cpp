@@ -409,12 +409,12 @@ uint8_t PPUBus::read_mem(uint16_t add)
         {
             if ((addr >= 0x2800))
             {
-                return vram[addr - 0x800];
+                return vram[(addr - 0x800) - 0x2000];
             }
 
             else
             {
-                return vram[addr];
+                return vram[addr-0x2000];
             }
         }
 
@@ -423,17 +423,17 @@ uint8_t PPUBus::read_mem(uint16_t add)
             // vertical mirroring
             if ((addr >= 0x2400 && addr < 0x2c00))
             {
-                return vram[addr - 0x400];
+                return vram[(addr - 0x400) - 0x2000];
             }
 
             else if (addr >= 0x2c00)
             {
-                return vram[addr - 0x800];
+                return vram[(addr - 0x800) - 0x2000];
             }
 
             else
             {
-                return vram[addr];
+                return vram[addr - 0x2000];
             }
         }
     }
@@ -489,24 +489,35 @@ void PPUBus::write_mem(uint16_t add, uint8_t data)
 {
 
     uint16_t addr = CAST_14(add); //ensure the address is wrapped around to 14 bits
+    //cout << "WRITING TO PPUADDRS: 0x" << toHex(addr) << '\n';
     // vram
     if (addr >= 0x2000 && addr <= 0x2fff)
     {
+        // //test debug
+        // uint8_t mirr = this->mainbus->cart->mirroring;
+        // cout << "MIRRORING: " << mirr << '\n';
 
-        // horizontal mirroring
+        //cout << "WRITING TO VRAM AREA" << '\n';
+   
+
+        // horizontal arrangement
         if (this->mainbus->cart->mirroring)
         {
 
             // debug
-            //cout << "HORIZONTAL MIRRORING DETECTED\n";
+            //cout << "HORIZONTAL ARR. DETECTED | VERTICAL MIRRORING \n";
             if ((addr >= 0x2800))
             {
-                vram[addr - 0x800] = data;
+                
+                //cout << "FINAL ADDRESS WRITING TO: 0x" << toHex(uint16_t(addr - 0x800)) << '\n';
+                vram[(addr - 0x800) - 0x2000] = data;
             }
 
             else
             {
-                vram[addr] = data;
+
+                
+                vram[addr-0x2000] = data;
             }
         }
 
@@ -515,19 +526,21 @@ void PPUBus::write_mem(uint16_t add, uint8_t data)
             // vertical mirroring
             // debug
             //cout << "VERTICAL MIRRORING\n";
+            //cout << "VERTICAL ARR. DETECTED | HORIZONTAL MIRRORING \n";
+
             if ((addr >= 0x2400 && addr < 0x2c00))
             {
-                vram[addr - 0x400] = data;
+                vram[(addr - 0x400) - 0x2000] = data;
             }
 
             else if (addr >= 0x2c00)
             {
-                vram[addr - 0x800] = data;
+                vram[(addr - 0x800) - 0x2000] = data;
             }
 
             else
             {
-                vram[addr] = data;
+                vram[addr - 0x2000] = data;
             }
         }
     }
