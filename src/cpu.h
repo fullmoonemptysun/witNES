@@ -57,7 +57,7 @@ public:
     };
 
     //total ticks ran (for ppu reference)
-    uint16_t cputicks = 0x0000;
+    uint64_t cputicks = 0;
     //nmi poll
     bool nmi_due = 0;
 

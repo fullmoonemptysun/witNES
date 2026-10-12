@@ -37,6 +37,7 @@ public:
 
     // registers
     uint8_t ppuctrl = 0;
+    bool ppuctrl_vblank_switch = 0; // tracks whether nmi enable flag went from 0 to 1.
     uint8_t ppumask = 0;
     uint8_t ppustatus = 0;
     uint8_t oamaddr = 0;

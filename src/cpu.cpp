@@ -96,13 +96,13 @@ void cpu::clock(){
         
         //disassembly------
 
-        // cout<< dislog.addr << "  ";
+        cout<< "[CPU] " << dislog.addr << "  ";
         // bus->memdmp << dislog.addr << "  ";
         for(string &str:dislog.bytes){
-            // cout<< str;
+            cout<< str;
             // bus->memdmp << str;
         }
-        // cout<< ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << '\n';
+        cout<< ' ' << dislog.opname << "  " << "A:" << toHex(acc) << ' ' << "X:" << toHex(xreg) << ' '<< "Y:" << toHex(yreg) << ' ' << "P:" << toHex(status)<< ' ' << "SP:" << toHex(stkp) << " ppuctrl: " << toHex(bus->ppub->witppu->ppuctrl) << " total ticks: " << cputicks << '\n';
 
         dislog.bytes.clear();
 
@@ -131,23 +131,30 @@ void cpu::clock(){
         cputicks += 1;
     }
 
-    else if(dma_remaining){
-        dma_remaining -= 1;
-        cputicks += 1;
+    else if (cycle > 0)
+    {
+        // if mid cycle, just do that, don't worry about nmi or dma
+        cycle -= 1;
+        cputicks += 1; // cycles reduces with every tick
     }
 
-    else if(nmi_due){
+
+      // if at boundary then worry about dma or nmi
+    else if (nmi_due)
+    {
+        cout << "NMI FIRED" << endl;
         cycle = 6;
         nmi();
         nmi_due = false;
         cputicks += 1;
     }
 
-
-	else{
-		cycle -= 1;
-        cputicks += 1;  //cycles reduces with every tick
-	}
+  
+    else if (dma_remaining)
+    {
+        dma_remaining -= 1;
+        cputicks += 1;
+    }
 }
 
 using a = cpu;

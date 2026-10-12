@@ -18,7 +18,7 @@ public:
     }
 
     uint8_t read_register(uint16_t addr);
-    void write_register(uint16_t addr, uint8_t data, uint16_t totalCycles);
+    void write_register(uint16_t addr, uint8_t data, uint64_t totalCycles);
     uint8_t read_mem(uint16_t);
     void write_mem(uint16_t, uint8_t);
 
